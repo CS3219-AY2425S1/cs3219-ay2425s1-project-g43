@@ -1,0 +1,81 @@
+{ 
+    "questions": [{
+        "id": 1,
+        "title": "Reverse a String",
+        "description": "Write a function that reverses a string. The input string is given as an array of characters s.You must do this by modifying the input array in-place with O(1) extra memory.",
+        "category": "Strings, Algorithms",
+        "complexity": "Easy"
+    },
+    
+    {
+        "id": 2,
+        "title": "Linked List Cycle Detection",
+        "description": "Implement a function to detect if a linked list contains a cycle",
+        "category": "Data Structures, Algorithms",
+        "complexity": "Easy"
+    },
+
+    {
+        "id": 3,
+        "title": "Roman to Integer",
+        "description": "Given a roman numeral, convert it to an integer. ",
+        "category": "Algorithms",
+        "complexity": "Easy"
+    },
+
+    {
+        "id": 4,
+        "title": "Add Binary",
+        "description": "Given two binary strings a and b, return their sum as a binary string.",
+        "category": "Bit Manipulation, Algorithms",
+        "complexity": "Easy"
+    },
+
+    {
+        "id": 5,
+        "title": "Fibonacci Number",
+        "description": "The Fibonacci numbers, commonly denoted F(n) form a sequence, called the Fibonacci sequence, such that each number is the sum of the two preceding ones, starting from 0 and 1. That is,F(0) = 0, F(1) = 1F(n) = F(n - 1) + F(n - 2), for n > 1.Given n, calculate F(n).",
+        "category": "Recursion, Algorithms",
+        "complexity": "Easy"
+    },
+
+    {
+        "id": 6,
+        "title": "Implement Stack using Queues",
+        "description": "Implement a last-in-first-out (LIFO) stack using only two queues. The implemented stack should support all the functions of a normal stack (push, top, pop, and empty).",
+        "category": "Data Structures",
+        "complexity": "Easy"
+    },
+
+    {
+        "id": 7,
+        "title": "Combine Two Tables",
+        "description": "Given table Person with the following columns: 1. personId (int) 2. lastName (varchar) 3. firstName (varchar) personId is the primary key.And table Address with the following columns: 1. addressId (int) 2. personId (int)3. city (varchar)4. state (varchar) addressId is the primary key.Write a solution to report the first name, last name, city, and state of each person in the Person table. If he address of a personId is not present in the Address table, report null instead.Return the result table in any order.",
+        "category": "Databases",
+        "complexity": "Easy"
+    },
+
+    {
+        "id": 8,
+        "title": "LRU Cache Design",
+        "description": "Design and implement an LRU (Least Recently Used) cache.",
+        "category": "Data Structures",
+        "complexity": "Medium"
+    },
+    
+    {
+        "id": 9,
+        "title": "Rotate Image",
+        "description": "You are given an n x n 2D matrix representing an image, rotate the image by 90 degrees (clockwise).",
+        "category": "Arrays, Algorithms",
+        "complexity": "Medium"
+    },
+
+    {
+        "id": 10,
+        "title": "Validate Binary Search Tree",
+        "description": "Given the root of a binary tree, determine if it is a valid binary search tree (BST).",
+        "category": "Data Structures, Algorithms",
+        "complexity": "Medium"
+    }]
+}
