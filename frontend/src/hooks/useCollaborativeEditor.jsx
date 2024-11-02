@@ -1,79 +1,69 @@
 import { useEffect, useState } from "react";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
-import { EditorView, basicSetup } from "codemirror";
-import { EditorState } from "@codemirror/state";
-import { yCollab } from "y-codemirror.next";
+import * as monaco from "monaco-editor";
+import { MonacoBinding } from "y-monaco";
+import { languages } from "../configs/editor";
 
 export const useCollaborativeEditor = ({
   roomName = "default-room",
   wsUrl = "ws://localhost:3006",
   containerId = "editor-container",
+  defaultLanguage = "python",
 }) => {
   const [status, setStatus] = useState("connecting");
+  const [connectedUsers, setConnectedUsers] = useState(0);
   const [editor, setEditor] = useState(null);
   const [provider, setProvider] = useState(null);
-  const [connectedUsers, setConnectedUsers] = useState(0);
 
   useEffect(() => {
-    let yDoc, wsProvider, view;
+    let yDoc, wsProvider, monacoEditor;
 
-    const initEditor = () => {
-      // Initialize Yjs document
+    const initializeEditor = () => {
+      // Initialize Yjs document and WebSocket provider
       yDoc = new Y.Doc();
-
-      // Create WebSocket connection
       wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc);
 
-      // Get the shared text
-      const yText = yDoc.getText("codemirror");
+      const yText = yDoc.getText("monaco");
 
-      // Create the editor state
-      const state = EditorState.create({
-        doc: yText.toString(),
-        extensions: [
-          basicSetup,
-          yCollab(yText, wsProvider.awareness),
-          EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
-              // Handle document changes here if needed
-            }
-          }),
-        ],
-      });
-
-      // Wait for the container to be available
-      const container = document.querySelector(`#${containerId}`);
+      // Find the container
+      const container = document.getElementById(containerId);
       if (!container) {
         throw new Error(`Container with id '${containerId}' not found`);
       }
 
-      // Create and mount the editor
-      view = new EditorView({
-        state,
-        parent: container,
+      // Create the Monaco Editor instance
+      monacoEditor = monaco.editor.create(container, {
+        theme: "vs-dark",
       });
 
-      console.log("VIEW");
-      console.log(container);
+      // Bind Yjs to Monaco
+      new MonacoBinding(
+        yText,
+        monacoEditor.getModel(),
+        new Set([monacoEditor]),
+        wsProvider.awareness,
+      );
 
-      setEditor(view);
+      setEditor(monacoEditor);
       setProvider(wsProvider);
 
-      // Handle connection status
-      wsProvider.on("status", ({ status }) => {
-        setStatus(status);
-        console.log("Status: ", status);
-      });
+      const initialTemplate =
+        languages.find((lang) => lang.value === defaultLanguage)?.template ||
+        "";
+      monacoEditor.getModel().setValue(initialTemplate);
 
-      // Handle awareness updates
+      monaco.editor.setModelLanguage(monacoEditor.getModel(), defaultLanguage);
+
+      // Handle connection status
+      wsProvider.on("status", ({ status }) => setStatus(status));
       wsProvider.awareness.on("change", () => {
         setConnectedUsers(wsProvider.awareness.getStates().size);
       });
     };
 
     try {
-      initEditor();
+      initializeEditor();
     } catch (error) {
       console.error("Error initializing collaborative editor:", error);
       setStatus("error");
@@ -81,26 +71,22 @@ export const useCollaborativeEditor = ({
 
     // Cleanup
     return () => {
-      if (view) view.destroy();
+      if (monacoEditor) monacoEditor.dispose();
       if (wsProvider) wsProvider.destroy();
       if (yDoc) yDoc.destroy();
     };
-  }, [roomName, wsUrl, containerId]);
+  }, [roomName, wsUrl, containerId, defaultLanguage]);
 
-  const getContent = () => {
-    return editor?.state.doc.toString() || "";
+  const updateLanguage = (newLanguage) => {
+    if (editor) {
+      monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
+    }
   };
 
+  const getContent = () => editor?.getModel().getValue() || "";
   const setContent = (content) => {
     if (editor) {
-      const transaction = editor.state.update({
-        changes: {
-          from: 0,
-          to: editor.state.doc.length,
-          insert: content,
-        },
-      });
-      editor.dispatch(transaction);
+      editor.getModel().setValue(content);
     }
   };
 
@@ -111,5 +97,6 @@ export const useCollaborativeEditor = ({
     connectedUsers,
     getContent,
     setContent,
+    updateLanguage,
   };
 };

@@ -10,16 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@codemirror/state": "^6.4.1",
-    "@uiw/react-codemirror": "^4.23.6",
     "axios": "^1.7.7",
     "chart.js": "^4.4.4",
-    "codemirror": "^6.0.1",
     "cross-env": "^7.0.3",
     "esbuild": "^0.24.0",
     "frontend": "file:",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.445.0",
+    "monaco-editor": "^0.52.0",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
@@ -28,7 +26,7 @@
     "react-toastify": "^10.0.5",
     "recharts": "^2.13.0",
     "socket.io-client": "^4.8.0",
-    "y-codemirror.next": "^0.3.5",
+    "y-monaco": "^0.1.6",
     "y-websocket": "^2.0.4",
     "yjs": "^13.6.20"
   },
