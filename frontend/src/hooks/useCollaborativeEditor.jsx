@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 import * as monaco from "monaco-editor";
 import { MonacoBinding } from "y-monaco";
-import { languages } from "../configs/editor";
+import { languages, editorDefaultOptions } from "../configs/monaco";
+import "../configs/monaco"
 
 export const useCollaborativeEditor = ({
   roomName = "default-room",
@@ -15,18 +16,31 @@ export const useCollaborativeEditor = ({
   const [connectedUsers, setConnectedUsers] = useState(0);
   const [editor, setEditor] = useState(null);
   const [provider, setProvider] = useState(null);
+  const [currentLanguage, setCurrentLanguage] = useState(defaultLanguage);
+  const pendingLanguage = useRef(null);
 
   useEffect(() => {
-    let yDoc, wsProvider, monacoEditor;
+    let yDoc, wsProvider, monacoEditor, yText, yLanguage;
 
     const initializeEditor = () => {
       // Initialize Yjs document and WebSocket provider
       yDoc = new Y.Doc();
-      wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc);
+      const wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc, {
+        reconnect: true,
+      });
 
-      const yText = yDoc.getText("monaco");
+      setProvider(wsProvider);
 
-      // Find the container
+      // Shared Yjs text and map for collaborative content and language syncing
+      yText = yDoc.getText("sharedCode");
+      yLanguage = yDoc.getMap("language");
+
+      // Set default language if none exists in Yjs
+      if (!yLanguage.has("selectedLanguage")) {
+        yLanguage.set("selectedLanguage", defaultLanguage);
+      }
+
+      // Find the container element for the Monaco editor
       const container = document.getElementById(containerId);
       if (!container) {
         throw new Error(`Container with id '${containerId}' not found`);
@@ -34,10 +48,14 @@ export const useCollaborativeEditor = ({
 
       // Create the Monaco Editor instance
       monacoEditor = monaco.editor.create(container, {
-        theme: "vs-dark",
+        theme: "custom-dark",
+        language: yLanguage.get("selectedLanguage"),
+        automaticLayout: true,
       });
 
-      // Bind Yjs to Monaco
+      setEditor(monacoEditor);
+
+      // Bind Yjs text to the Monaco model
       new MonacoBinding(
         yText,
         monacoEditor.getModel(),
@@ -45,20 +63,32 @@ export const useCollaborativeEditor = ({
         wsProvider.awareness,
       );
 
-      setEditor(monacoEditor);
-      setProvider(wsProvider);
-
-      const initialTemplate =
-        languages.find((lang) => lang.value === defaultLanguage)?.template ||
-        "";
-      monacoEditor.getModel().setValue(initialTemplate);
-
-      monaco.editor.setModelLanguage(monacoEditor.getModel(), defaultLanguage);
-
-      // Handle connection status
+      // Handle connection status and user count
       wsProvider.on("status", ({ status }) => setStatus(status));
       wsProvider.awareness.on("change", () => {
         setConnectedUsers(wsProvider.awareness.getStates().size);
+      });
+      
+
+      // Insert initial template after syncing with the server
+      wsProvider.on("synced", (isSynced) => {
+        if (isSynced && !yText.length) {
+          const initialTemplate = languages.find(
+            (lang) => lang.value === yLanguage.get("selectedLanguage"),
+          )?.template;
+          if (initialTemplate) {
+            yText.insert(0, initialTemplate);
+          }
+        }
+      });
+
+      // Observe language changes in Yjs to sync language state
+      yLanguage.observe(() => {
+        const newLanguage = yLanguage.get("selectedLanguage");
+        if (newLanguage && newLanguage !== currentLanguage) {
+          setCurrentLanguage(newLanguage);
+          monaco.editor.setModelLanguage(monacoEditor.getModel(), newLanguage);
+        }
       });
     };
 
@@ -69,17 +99,20 @@ export const useCollaborativeEditor = ({
       setStatus("error");
     }
 
-    // Cleanup
+    // Cleanup on component unmount
     return () => {
       if (monacoEditor) monacoEditor.dispose();
       if (wsProvider) wsProvider.destroy();
       if (yDoc) yDoc.destroy();
     };
-  }, [roomName, wsUrl, containerId, defaultLanguage]);
+  }, [roomName, wsUrl, containerId]);
 
   const updateLanguage = (newLanguage) => {
-    if (editor) {
-      monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
+    if (provider) {
+      const yLanguage = provider.doc.getMap("language");
+      yLanguage.set("selectedLanguage", newLanguage);
+    } else {
+      pendingLanguage.current = newLanguage;
     }
   };
 
@@ -98,5 +131,6 @@ export const useCollaborativeEditor = ({
     getContent,
     setContent,
     updateLanguage,
+    currentLanguage, // Ensure this is returned
   };
 };

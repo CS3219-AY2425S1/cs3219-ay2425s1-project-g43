@@ -1,16 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCollaborativeEditor } from "../hooks/useCollaborativeEditor";
 import Button from "../components/Button";
 import Select from "../components/Select";
 import Output from "../components/Output";
-import { languages } from "../configs/editor";
+import { languages, editorDefaultOptions } from "../configs/monaco";
 import { executePistonCode } from "../services/CollaborationService";
 import { useLocation } from "react-router-dom";
 import { Play, Loader } from "lucide-react";
 
+const collaborationServiceBaseUrl = import.meta.env
+  .VITE_COLLABORATION_SERVICE_BASEURL;
 
 export default function CodeEditor() {
-  const [language, setLanguage] = useState("python");
+  // Define localLanguage and setLocalLanguage
+  const [localLanguage, setLocalLanguage] = useState("python"); // Default language as "python"
   const [output, setOutput] = useState({
     type: "initial",
     content: "No output yet",
@@ -20,47 +23,60 @@ export default function CodeEditor() {
   const location = useLocation();
   const roomName = location.pathname.split("/").pop();
 
-  // Using the custom hook
-  const { status, connectedUsers, getContent, setContent, updateLanguage } =
-    useCollaborativeEditor({
-      roomName,
-      wsUrl:
-        import.meta.env.VITE_COLLABORATION_SERVICE_BASEURL ||
-        "ws://localhost:6006",
-      containerId: "editor-container",
-      defaultLanguage: language,
-    });
+  // Using the custom hook with synchronization capabilities
+  const {
+    status,
+    connectedUsers,
+    getContent,
+    setContent,
+    updateLanguage,
+    currentLanguage, // New: Get the shared language state
+  } = useCollaborativeEditor({
+    roomName,
+    wsUrl: collaborationServiceBaseUrl || "ws://localhost:6006",
+    containerId: "editor-container",
+    defaultLanguage: localLanguage,
+  });
+
+  // Sync local language state with shared language state
+  useEffect(() => {
+    if (currentLanguage && currentLanguage !== localLanguage) {
+      setLocalLanguage(currentLanguage);
+    }
+  }, [currentLanguage]);
 
   const handleRun = async () => {
     setIsExecuting(true);
     setOutput({ type: "running", content: "Executing code..." });
 
-    const code = getContent();
-    const result = await executePistonCode(language, code);
+    try {
+      const code = getContent();
+      const result = await executePistonCode(localLanguage, code);
 
-    if (result.success) {
-      setOutput({ type: "success", content: result.output });
-    } else {
-      const errorPrefix =
-        result.errorType === "compilation"
-          ? "⚠️ Compilation Error:\n"
-          : result.errorType === "runtime"
-            ? "❌ Runtime Error:\n"
-            : "⚠️ System Error:\n";
-      setOutput({ type: "error", content: errorPrefix + result.error });
+      if (result.success) {
+        setOutput({ type: "success", content: result.output });
+      } else {
+        const errorPrefix =
+          result.errorType === "compilation"
+            ? "⚠️ Compilation Error:\n"
+            : result.errorType === "runtime"
+              ? "❌ Runtime Error:\n"
+              : "⚠️ System Error:\n";
+        setOutput({ type: "error", content: errorPrefix + result.error });
+      }
+    } catch (error) {
+      setOutput({
+        type: "error",
+        content: "⚠️ System Error:\n" + error.message,
+      });
+    } finally {
+      setIsExecuting(false);
     }
-
-    setIsExecuting(false);
   };
 
   const handleLanguageChange = (newLanguage) => {
-    setLanguage(newLanguage);
-    updateLanguage(newLanguage);
-
-    const template =
-      languages.find((lang) => lang.value === newLanguage)?.template || "";
-    setContent(template);
-    setOutput({ type: "initial", content: "No output yet" });
+    setLocalLanguage(newLanguage); // Update local state
+    updateLanguage(newLanguage); // Update shared state
   };
 
   return (
@@ -69,7 +85,7 @@ export default function CodeEditor() {
 
       <div className="mb-4 flex flex-wrap items-start gap-4">
         <Select
-          value={language}
+          value={localLanguage}
           onChange={handleLanguageChange}
           options={languages}
         />
@@ -84,7 +100,7 @@ export default function CodeEditor() {
 
       <div
         id="editor-container"
-        className="h-[400px] w-full overflow-hidden rounded-lg border border-gray-700/30 bg-[#1e1e1e] py-1"
+        className="h-[400px] w-full overflow-hidden rounded-lg border border-gray-700/30 bg-[#1e1e1e] "
       />
 
       <Output output={output} />
@@ -98,7 +114,9 @@ function Header({ status, connectedUsers }) {
       <div className="text-L mb-2 font-bold text-[#bcfe4d]">CODE EDITOR</div>
       <div className="flex items-center gap-2">
         <div
-          className={`h-2 w-2 rounded-full ${status === "connected" ? "bg-green-500" : "bg-red-500"}`}
+          className={`h-2 w-2 rounded-full ${
+            status === "connected" ? "bg-green-500" : "bg-red-500"
+          }`}
         />
         <span className="text-sm text-gray-400">
           {status === "connected"

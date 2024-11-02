@@ -15,6 +15,7 @@ import Help from "./pages/Help.jsx";
 import FindingPeer from "./pages/FindingPeer.jsx";
 import MatchingService from "./pages/MatchingService.jsx";
 import CollaborationService from "./pages/CollaborationService.jsx";
+import "../src/configs/monaco.js"
 
 const router = createBrowserRouter([
   {

@@ -1,269 +1,427 @@
 import * as monaco from "monaco-editor";
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 
-self.MonacoEnvironment = {
-  getWorker(_, label) {
-    return new editorWorker();
+// Language templates and metadata
+export const languages = [
+  {
+    value: "python",
+    label: "Python",
+    template:
+      'def main():\n    print("Hello, World!")\n\nif __name__ == "__main__":\n    main()',
+  },
+  {
+    value: "java",
+    label: "Java",
+    template:
+      'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}',
+  },
+  {
+    value: "javascript",
+    label: "JavaScript",
+    template:
+      'function main() {\n    console.log("Hello, World!");\n}\n\nmain();',
+  },
+  {
+    value: "typescript",
+    label: "TypeScript",
+    template:
+      'function main(): void {\n    console.log("Hello, World!");\n}\n\nmain();',
+  },
+  {
+    value: "c",
+    label: "C",
+    template:
+      '#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}',
+  },
+  {
+    value: "csharp",
+    label: "C#",
+    template:
+      'using System;\n\nclass Program {\n    static void Main(string[] args) {\n        Console.WriteLine("Hello, World!");\n    }\n}',
+  },
+  {
+    value: "cpp",
+    label: "C++",
+    template:
+      '#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}',
+  },
+];
+
+// Editor default options
+export const editorOptions = {
+  fontSize: 18,
+  lineHeight: 21,
+  minimap: { enabled: true },
+  renderValidationDecorations: "on",
+  semanticValidation: true,
+  syntaxValidation: true,
+  hover: { enabled: true },
+  suggestOnTriggerCharacters: true,
+  formatOnType: false,
+  formatOnPaste: true,
+  lightbulb: { enabled: true },
+  quickSuggestions: { other: true, comments: true, strings: true },
+  parameterHints: { enabled: true },
+  wordBasedSuggestions: true,
+  suggest: {
+    showKeywords: true,
+    showWords: true,
+    showFunctions: true,
+    showClasses: true,
+    showEvents: true,
   },
 };
 
+// Theme configuration
 monaco.editor.defineTheme("custom-dark", {
   base: "vs-dark",
   inherit: true,
   rules: [
-    { token: "keyword", foreground: "#C586C0", fontStyle: "bold" },
-    { token: "type", foreground: "#4EC9B0" },
-    { token: "identifier", foreground: "#9CDCFE" },
-    { token: "string", foreground: "#CE9178" },
-    { token: "string.escape", foreground: "#D7BA7D" },
-    { token: "number", foreground: "#B5CEA8" },
-    { token: "comment", foreground: "#6A9955", fontStyle: "italic" },
-    { token: "operator", foreground: "#D4D4D4" },
-    { token: "delimiter", foreground: "#D4D4D4" },
-    { token: "delimiter.bracket", foreground: "#FFD700" },
-    { token: "variable.parameter", foreground: "#9CDCFE" },
-    { token: "function", foreground: "#DCDCAA" },
-    { token: "preprocessor", foreground: "#C586C0" },
+    {
+      background: "24292e",
+      token: "",
+    },
+    {
+      foreground: "959da5",
+      token: "comment",
+    },
+    {
+      foreground: "959da5",
+      token: "punctuation.definition.comment",
+    },
+    {
+      foreground: "959da5",
+      token: "string.comment",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "constant",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "entity.name.constant",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "variable.other.constant",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "variable.language",
+    },
+    {
+      foreground: "b392f0",
+      token: "entity",
+    },
+    {
+      foreground: "b392f0",
+      token: "entity.name",
+    },
+    {
+      foreground: "f6f8fa",
+      token: "variable.parameter.function",
+    },
+    {
+      foreground: "7bcc72",
+      token: "entity.name.tag",
+    },
+    {
+      foreground: "ea4a5a",
+      token: "keyword",
+    },
+    {
+      foreground: "ea4a5a",
+      token: "storage",
+    },
+    {
+      foreground: "ea4a5a",
+      token: "storage.type",
+    },
+    {
+      foreground: "f6f8fa",
+      token: "storage.modifier.package",
+    },
+    {
+      foreground: "f6f8fa",
+      token: "storage.modifier.import",
+    },
+    {
+      foreground: "f6f8fa",
+      token: "storage.type.java",
+    },
+    {
+      foreground: "79b8ff",
+      token: "string",
+    },
+    {
+      foreground: "79b8ff",
+      token: "punctuation.definition.string",
+    },
+    {
+      foreground: "79b8ff",
+      token: "string punctuation.section.embedded source",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "support",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "meta.property-name",
+    },
+    {
+      foreground: "fb8532",
+      token: "variable",
+    },
+    {
+      foreground: "f6f8fa",
+      token: "variable.other",
+    },
+    {
+      foreground: "d73a49",
+      fontStyle: "bold italic underline",
+      token: "invalid.broken",
+    },
+    {
+      foreground: "d73a49",
+      fontStyle: "bold italic underline",
+      token: "invalid.deprecated",
+    },
+    {
+      foreground: "fafbfc",
+      background: "d73a49",
+      fontStyle: "italic underline",
+      token: "invalid.illegal",
+    },
+    {
+      foreground: "fafbfc",
+      background: "d73a49",
+      fontStyle: "italic underline",
+      token: "carriage-return",
+    },
+    {
+      foreground: "d73a49",
+      fontStyle: "bold italic underline",
+      token: "invalid.unimplemented",
+    },
+    {
+      foreground: "d73a49",
+      token: "message.error",
+    },
+    {
+      foreground: "f6f8fa",
+      token: "string source",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "string variable",
+    },
+    {
+      foreground: "79b8ff",
+      token: "source.regexp",
+    },
+    {
+      foreground: "79b8ff",
+      token: "string.regexp",
+    },
+    {
+      foreground: "79b8ff",
+      token: "string.regexp.character-class",
+    },
+    {
+      foreground: "79b8ff",
+      token: "string.regexp constant.character.escape",
+    },
+    {
+      foreground: "79b8ff",
+      token: "string.regexp source.ruby.embedded",
+    },
+    {
+      foreground: "79b8ff",
+      token: "string.regexp string.regexp.arbitrary-repitition",
+    },
+    {
+      foreground: "7bcc72",
+      fontStyle: "bold",
+      token: "string.regexp constant.character.escape",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "support.constant",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "support.variable",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "meta.module-reference",
+    },
+    {
+      foreground: "fb8532",
+      token: "markup.list",
+    },
+    {
+      foreground: "0366d6",
+      fontStyle: "bold",
+      token: "markup.heading",
+    },
+    {
+      foreground: "0366d6",
+      fontStyle: "bold",
+      token: "markup.heading entity.name",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "markup.quote",
+    },
+    {
+      foreground: "f6f8fa",
+      fontStyle: "italic",
+      token: "markup.italic",
+    },
+    {
+      foreground: "f6f8fa",
+      fontStyle: "bold",
+      token: "markup.bold",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "markup.raw",
+    },
+    {
+      foreground: "b31d28",
+      background: "ffeef0",
+      token: "markup.deleted",
+    },
+    {
+      foreground: "b31d28",
+      background: "ffeef0",
+      token: "meta.diff.header.from-file",
+    },
+    {
+      foreground: "b31d28",
+      background: "ffeef0",
+      token: "punctuation.definition.deleted",
+    },
+    {
+      foreground: "176f2c",
+      background: "f0fff4",
+      token: "markup.inserted",
+    },
+    {
+      foreground: "176f2c",
+      background: "f0fff4",
+      token: "meta.diff.header.to-file",
+    },
+    {
+      foreground: "176f2c",
+      background: "f0fff4",
+      token: "punctuation.definition.inserted",
+    },
+    {
+      foreground: "b08800",
+      background: "fffdef",
+      token: "markup.changed",
+    },
+    {
+      foreground: "b08800",
+      background: "fffdef",
+      token: "punctuation.definition.changed",
+    },
+    {
+      foreground: "2f363d",
+      background: "959da5",
+      token: "markup.ignored",
+    },
+    {
+      foreground: "2f363d",
+      background: "959da5",
+      token: "markup.untracked",
+    },
+    {
+      foreground: "b392f0",
+      fontStyle: "bold",
+      token: "meta.diff.range",
+    },
+    {
+      foreground: "c8e1ff",
+      token: "meta.diff.header",
+    },
+    {
+      foreground: "0366d6",
+      fontStyle: "bold",
+      token: "meta.separator",
+    },
+    {
+      foreground: "0366d6",
+      token: "meta.output",
+    },
+    {
+      foreground: "ffeef0",
+      token: "brackethighlighter.tag",
+    },
+    {
+      foreground: "ffeef0",
+      token: "brackethighlighter.curly",
+    },
+    {
+      foreground: "ffeef0",
+      token: "brackethighlighter.round",
+    },
+    {
+      foreground: "ffeef0",
+      token: "brackethighlighter.square",
+    },
+    {
+      foreground: "ffeef0",
+      token: "brackethighlighter.angle",
+    },
+    {
+      foreground: "ffeef0",
+      token: "brackethighlighter.quote",
+    },
+    {
+      foreground: "d73a49",
+      token: "brackethighlighter.unmatched",
+    },
+    {
+      foreground: "d73a49",
+      token: "sublimelinter.mark.error",
+    },
+    {
+      foreground: "fb8532",
+      token: "sublimelinter.mark.warning",
+    },
+    {
+      foreground: "6a737d",
+      token: "sublimelinter.gutter-mark",
+    },
+    {
+      foreground: "79b8ff",
+      fontStyle: "underline",
+      token: "constant.other.reference.link",
+    },
+    {
+      foreground: "79b8ff",
+      fontStyle: "underline",
+      token: "string.other.link",
+    },
   ],
   colors: {
-    "editor.background": "#1E1E1E",
-    "editor.lineHighlightBackground": "#2D2D2D",
-    "editor.selectionBackground": "#264F78",
-    "editorCursor.foreground": "#FFFFFF",
-    "editorIndentGuide.activeBackground": "#707070",
-    "editorIndentGuide.background": "#404040",
+    "editor.foreground": "#f6f8fa",
+    "editor.background": "#24292e",
+    "editor.selectionBackground": "#4c2889",
+    "editor.inactiveSelectionBackground": "#444d56",
+    "editor.lineHighlightBackground": "#444d56",
+    "editorCursor.foreground": "#ffffff",
+    "editorWhitespace.foreground": "#6a737d",
+    "editorIndentGuide.background": "#6a737d",
+    "editorIndentGuide.activeBackground": "#f6f8fa",
+    "editor.selectionHighlightBorder": "#444d56",
   },
 });
 
-
-const editorDefaultOptions = {
+export const editorDefaultOptions = {
   theme: "custom-dark",
-  fontSize: 14,
-  lineHeight: 21,
-  minimap: { enabled: false },
-  padding: { top: 10 },
-  smoothScrolling: true,
-  cursorBlinking: "smooth",
-  cursorSmoothCaretAnimation: true,
-  tabSize: 2,
-  bracketPairColorization: { enabled: true },
-  guides: {
-    bracketPairs: true,
-    indentation: true,
-  },
-  renderLineHighlight: "all",
+  ...editorOptions,
 };
-
-
-const createLanguageConfig = (languageSpecific = {}) => ({
-  defaultToken: "invalid",
-  tokenizer: {
-    root: [
-      // Keywords
-      [
-        /\b(if|else|while|for|return|function|class|import|export|from|const|let|var)\b/,
-        "keyword",
-      ],
-      [
-        new RegExp(`\\b(${languageSpecific.keywords?.join("|") || ""})\\b`),
-        "keyword",
-      ],
-      // Strings
-      [/"([^"\\]|\\.)*$/, "string.invalid"], // Bad string
-      [/'([^'\\]|\\.)*$/, "string.invalid"], // Bad string
-      [/"/, "string", "@string_double"],
-      [/'/, "string", "@string_single"],
-      [/`/, "string", "@string_backtick"],
-
-      // Comments
-      [/\/\/.*$/, "comment"],
-      [/\/\*/, "comment", "@comment"],
-
-      // Numbers
-      [/\d*\.\d+([eE][-+]?\d+)?/, "number.float"],
-      [/0[xX][0-9a-fA-F]+/, "number.hex"],
-      [/\d+/, "number"],
-
-      // Identifiers
-      [/[a-zA-Z_]\w*/, { cases: { "@default": "identifier" } }],
-
-      // Operators
-      [/[=><!~?:&|+\-*/^%]+/, "operator"],
-
-      // Brackets
-      [/[{}()[\]]/, "@brackets"],
-
-      // Delimiters
-      [/[;,.]/, "delimiter"],
-    ],
-    string_double: [
-      [/[^\\"]+/, "string"],
-      [/\\./, "string.escape"],
-      [/"/, "string", "@pop"],
-    ],
-    string_single: [
-      [/[^\\']+/, "string"],
-      [/\\./, "string.escape"],
-      [/'/, "string", "@pop"],
-    ],
-    string_backtick: [
-      [/\$\{/, { token: "delimiter.bracket", next: "@bracketCounting" }],
-      [/[^\\`$]+/, "string"],
-      [/\\./, "string.escape"],
-      [/`/, "string", "@pop"],
-    ],
-    bracketCounting: [
-      [/\{/, "delimiter.bracket", "@bracketCounting"],
-      [/\}/, "delimiter.bracket", "@pop"],
-      { include: "root" },
-    ],
-    comment: [
-      [/[^/*]+/, "comment"],
-      [/\*\//, "comment", "@pop"],
-      [/[/*]/, "comment"],
-    ],
-  },
-});
-
-// Language-specific configurations
-const languageConfigs = {
-  python: {
-    keywords: [
-      "and",
-      "as",
-      "assert",
-      "async",
-      "await",
-      "break",
-      "class",
-      "continue",
-      "def",
-      "del",
-      "elif",
-      "else",
-      "except",
-      "finally",
-      "for",
-      "from",
-      "global",
-      "if",
-      "import",
-      "in",
-      "is",
-      "lambda",
-      "nonlocal",
-      "not",
-      "or",
-      "pass",
-      "raise",
-      "return",
-      "try",
-      "while",
-      "with",
-      "yield",
-    ],
-  },
-  java: {
-    keywords: [
-      "abstract",
-      "assert",
-      "boolean",
-      "break",
-      "byte",
-      "case",
-      "catch",
-      "char",
-      "class",
-      "const",
-      "continue",
-      "default",
-      "do",
-      "double",
-      "else",
-      "enum",
-      "extends",
-      "final",
-      "finally",
-      "float",
-      "for",
-      "if",
-      "implements",
-      "import",
-      "instanceof",
-      "int",
-      "interface",
-      "long",
-      "native",
-      "new",
-      "package",
-      "private",
-      "protected",
-      "public",
-      "return",
-      "short",
-      "static",
-      "strictfp",
-      "super",
-      "switch",
-      "synchronized",
-      "this",
-      "throw",
-      "throws",
-      "transient",
-      "try",
-      "void",
-      "volatile",
-      "while",
-    ],
-  },
-  cpp: {
-    keywords: [
-      "auto",
-      "break",
-      "case",
-      "char",
-      "const",
-      "continue",
-      "default",
-      "do",
-      "double",
-      "else",
-      "enum",
-      "extern",
-      "float",
-      "for",
-      "goto",
-      "if",
-      "int",
-      "long",
-      "register",
-      "return",
-      "short",
-      "signed",
-      "sizeof",
-      "static",
-      "struct",
-      "switch",
-      "typedef",
-      "union",
-      "unsigned",
-      "void",
-      "volatile",
-      "while",
-      "class",
-      "namespace",
-      "template",
-      "virtual",
-      "public",
-      "protected",
-      "private",
-    ],
-  },
-};
-
-Object.entries(languageConfigs).forEach(([lang, config]) => {
-  monaco.languages.register({ id: lang });
-  monaco.languages.setMonarchTokensProvider(lang, createLanguageConfig(config));
-});
-
-export { editorDefaultOptions };
