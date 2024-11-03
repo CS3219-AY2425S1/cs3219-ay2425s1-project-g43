@@ -4,13 +4,14 @@ import { WebsocketProvider } from "y-websocket";
 import * as monaco from "monaco-editor";
 import { MonacoBinding } from "y-monaco";
 import { languages, editorDefaultOptions } from "../configs/monaco";
-import "../configs/monaco"
+import "../configs/monaco";
 
 export const useCollaborativeEditor = ({
   roomName = "default-room",
   wsUrl = "ws://localhost:3006",
   containerId = "editor-container",
   defaultLanguage = "python",
+  theme = "vs-dark",
 }) => {
   const [status, setStatus] = useState("connecting");
   const [connectedUsers, setConnectedUsers] = useState(0);
@@ -25,22 +26,18 @@ export const useCollaborativeEditor = ({
     const initializeEditor = () => {
       // Initialize Yjs document and WebSocket provider
       yDoc = new Y.Doc();
-      const wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc, {
+      wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc, {
         reconnect: true,
       });
 
       setProvider(wsProvider);
-
-      // Shared Yjs text and map for collaborative content and language syncing
       yText = yDoc.getText("sharedCode");
       yLanguage = yDoc.getMap("language");
 
-      // Set default language if none exists in Yjs
       if (!yLanguage.has("selectedLanguage")) {
         yLanguage.set("selectedLanguage", defaultLanguage);
       }
 
-      // Find the container element for the Monaco editor
       const container = document.getElementById(containerId);
       if (!container) {
         throw new Error(`Container with id '${containerId}' not found`);
@@ -48,7 +45,8 @@ export const useCollaborativeEditor = ({
 
       // Create the Monaco Editor instance
       monacoEditor = monaco.editor.create(container, {
-        theme: "custom-dark",
+        ...editorDefaultOptions,
+        theme,
         language: yLanguage.get("selectedLanguage"),
         automaticLayout: true,
       });
@@ -63,12 +61,8 @@ export const useCollaborativeEditor = ({
         wsProvider.awareness,
       );
 
-      // Handle connection status and user count
+      // Track connection status
       wsProvider.on("status", ({ status }) => setStatus(status));
-      wsProvider.awareness.on("change", () => {
-        setConnectedUsers(wsProvider.awareness.getStates().size);
-      });
-      
 
       // Insert initial template after syncing with the server
       wsProvider.on("synced", (isSynced) => {
@@ -105,7 +99,11 @@ export const useCollaborativeEditor = ({
       if (wsProvider) wsProvider.destroy();
       if (yDoc) yDoc.destroy();
     };
-  }, [roomName, wsUrl, containerId]);
+  }, [roomName, wsUrl, containerId, theme, defaultLanguage]);
+
+  const changeTheme = (newTheme) => {
+    monaco.editor.setTheme(newTheme);
+  };
 
   const updateLanguage = (newLanguage) => {
     if (provider) {
@@ -131,6 +129,7 @@ export const useCollaborativeEditor = ({
     getContent,
     setContent,
     updateLanguage,
-    currentLanguage, // Ensure this is returned
+    currentLanguage,
+    changeTheme,
   };
 };

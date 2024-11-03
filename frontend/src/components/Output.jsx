@@ -2,11 +2,11 @@ const Output = ({ output }) => {
   const getOutputStyle = () => {
     switch (output.type) {
       case "error":
-        return "text-red-500 font-medium";
+        return "text-red-400 font-medium";
       case "success":
-        return "text-green-500";
+        return "text-lime-300";
       case "running":
-        return "text-yellow-500";
+        return "text-yellow-400";
       default:
         return "text-gray-500";
     }

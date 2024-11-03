@@ -23,6 +23,22 @@ body {
     sans-serif;
 }
 
+.remote-cursor {
+  border-left: 2px solid transparent;
+}
+
+.remote-user-name {
+  font-size: 0.8em;
+  margin-left: 4px;
+  display: inline-block;
+  position: absolute;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+
 ::-webkit-scrollbar {
   display: none;
 }
