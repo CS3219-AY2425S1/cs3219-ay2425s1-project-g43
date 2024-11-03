@@ -15,6 +15,7 @@ export const useCollaborativeEditor = ({
 }) => {
   const [status, setStatus] = useState("connecting");
   const [connectedUsers, setConnectedUsers] = useState(0);
+  const [initialTemplate, setInitialTemplate] = useState("");
   const [editor, setEditor] = useState(null);
   const [provider, setProvider] = useState(null);
   const [currentLanguage, setCurrentLanguage] = useState(defaultLanguage);
@@ -43,6 +44,11 @@ export const useCollaborativeEditor = ({
         throw new Error(`Container with id '${containerId}' not found`);
       }
 
+      const awareness = wsProvider.awareness;
+      awareness.on("change", () => {
+        setConnectedUsers(awareness.getStates().size);
+      });
+
       // Create the Monaco Editor instance
       monacoEditor = monaco.editor.create(container, {
         ...editorDefaultOptions,
@@ -67,23 +73,31 @@ export const useCollaborativeEditor = ({
       // Insert initial template after syncing with the server
       wsProvider.on("synced", (isSynced) => {
         if (isSynced && !yText.length) {
-          const initialTemplate = languages.find(
-            (lang) => lang.value === yLanguage.get("selectedLanguage"),
-          )?.template;
-          if (initialTemplate) {
-            yText.insert(0, initialTemplate);
-          }
+          const template = getTemplateForLanguage(
+            yLanguage.get("selectedLanguage"),
+          );
+          yText.insert(0, template);
+          setInitialTemplate(template); // Set initial template for comparison
         }
       });
 
       // Observe language changes in Yjs to sync language state
-      yLanguage.observe(() => {
-        const newLanguage = yLanguage.get("selectedLanguage");
-        if (newLanguage && newLanguage !== currentLanguage) {
-          setCurrentLanguage(newLanguage);
-          monaco.editor.setModelLanguage(monacoEditor.getModel(), newLanguage);
-        }
-      });
+       yLanguage.observe(() => {
+         const newLanguage = yLanguage.get("selectedLanguage");
+         if (newLanguage && newLanguage !== currentLanguage) {
+           setCurrentLanguage(newLanguage);
+           monaco.editor.setModelLanguage(monacoEditor.getModel(), newLanguage);
+
+           // Update the template if the content is unchanged
+           const currentContent = monacoEditor.getModel().getValue();
+           if (currentContent === initialTemplate) {
+             const newTemplate = getTemplateForLanguage(newLanguage);
+             yText.delete(0, yText.length); // Clear current content
+             yText.insert(0, newTemplate); // Insert new language template
+             setInitialTemplate(newTemplate); // Update initial template for future comparison
+           }
+         }
+       });
     };
 
     try {
@@ -104,6 +118,10 @@ export const useCollaborativeEditor = ({
   const changeTheme = (newTheme) => {
     monaco.editor.setTheme(newTheme);
   };
+
+   const getTemplateForLanguage = (language) => {
+     return languages.find((lang) => lang.value === language)?.template || "";
+   };
 
   const updateLanguage = (newLanguage) => {
     if (provider) {

@@ -25,11 +25,11 @@ export default function Problems({ problem }) {
           {problem.complexity}
         </span>
       </div>
-      <div className="h-[1px] bg-white"></div>
+      <div className="h-[1px] bg-white/30"></div>
 
       {/* Scrollable Description Section */}
       <div
-        className="flex-1 overflow-y-auto bg-[#1e1e1e]/40 text-white rounded-lg p-2 text-sm font-light"
+        className="flex-1 overflow-y-auto rounded-lg bg-[#1e1e1e]/40 px-3 py-2 text-sm font-light text-white"
         style={{ whiteSpace: "pre-line" }}
       >
         {problem.description}

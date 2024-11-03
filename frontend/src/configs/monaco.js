@@ -70,7 +70,7 @@ export const languages = [
     value: "cpp",
     label: "C++",
     template:
-      '# Here is a starter template:\n\n#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}',
+      '// Here is a starter template:\n\n#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}',
   },
 ];
 
