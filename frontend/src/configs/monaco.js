@@ -113,6 +113,9 @@ monaco.editor.defineTheme("amy", amy);
 monaco.editor.defineTheme("cobalt", cobalt);
 
 export const themeOptions = [
+  { value: "vs-dark", label: "VS Dark" },
+  { value: "vs", label: "VS Light" },
+  { value: "hc-black", label: "VS High Contrast" },
   { value: "monokai", label: "Monokai" },
   { value: "dracula", label: "Dracula" },
   { value: "github-light", label: "GitHub Light" },

@@ -27,7 +27,7 @@ export default function Problems({ problem }) {
       </div>
       <div className="h-[1px] bg-white/30"></div>
 
-      {/* Scrollable Description Section */}
+      {/* Description Section */}
       <div
         className="flex-1 overflow-y-auto rounded-lg bg-[#1e1e1e]/40 px-3 py-2 text-sm font-light text-white"
         style={{ whiteSpace: "pre-line" }}

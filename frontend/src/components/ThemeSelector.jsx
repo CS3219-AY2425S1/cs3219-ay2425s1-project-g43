@@ -11,7 +11,7 @@ function ThemeSelector({ onThemeChange }) {
   return (
     <select
       onChange={handleThemeChange}
-      defaultValue="monokai"
+      defaultValue="vs-dark"
       className="rounded-full border border-gray-300/30 bg-black px-2 py-2 text-center font-sans text-sm text-white focus:outline-none"
     >
       {themeOptions.map((theme) => (

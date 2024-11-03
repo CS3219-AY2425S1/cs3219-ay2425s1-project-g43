@@ -24,6 +24,11 @@ export default function CodeEditor() {
   const location = useLocation();
   const roomName = location.pathname.split("/").pop();
 
+  const user = {
+    name: `User-${Math.random()}`,
+    color: "#" + Math.floor(Math.random() * 16777215).toString(16),
+  };
+
   // Using the custom hook with synchronization capabilities
   const {
     status,
@@ -39,6 +44,7 @@ export default function CodeEditor() {
     containerId: "editor-container",
     defaultLanguage: localLanguage,
     theme,
+    user,
   });
 
   useEffect(() => {
@@ -47,6 +53,7 @@ export default function CodeEditor() {
     }
   }, [currentLanguage]);
 
+  // this is for running the code i.e generating output
   const handleRun = async () => {
     setIsExecuting(true);
     setOutput({ type: "running", content: "Executing code..." });
