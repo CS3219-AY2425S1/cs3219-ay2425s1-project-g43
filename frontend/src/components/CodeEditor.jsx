@@ -10,7 +10,7 @@ export default function CodeEditor({ code, setCode, language, setLanguage }) {
   const { status, connectedUsers, getContent, setContent } =
     useCollaborativeEditor({
       roomName,
-      wsUrl: collaborationServiceBaseUrl || "ws://localhost:6006",
+      wsUrl: collaborationServiceBaseUrl || "ws://localhost:3006",
       containerId: "editor-container",
     });
 

@@ -40,3 +40,5 @@ services:
       - "3006:3006"
     env_file:
       - ./backend/collaboration-service/.env
+    environment:
+      - HOST=0.0.0.0
