@@ -34,43 +34,43 @@ export const languages = [
     value: "python",
     label: "Python",
     template:
-      '# Here is a starter template:\n\ndef main():\n    print("Hello, World!")\n\nif __name__ == "__main__":\n    main()',
+      '# Here is a starter template:\n# White Cursor: You\n# Purple Cursor: Your Peer\n\ndef main():\n    print("Hello, World!")\n\nif __name__ == "__main__":\n    main()',
   },
   {
     value: "java",
     label: "Java",
     template:
-      '// Here is a starter template:\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}',
+      '// Here is a starter template:\n// White Cursor: You\n// Purple Cursor: Your Peer\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}',
   },
   {
     value: "javascript",
     label: "JavaScript",
     template:
-      '// Here is a starter template:\n\nfunction main() {\n    console.log("Hello, World!");\n}\n\nmain();',
+      '// Here is a starter template:\n// White Cursor: You\n// Purple Cursor: Your Peer\n\nfunction main() {\n    console.log("Hello, World!");\n}\n\nmain();',
   },
   {
     value: "typescript",
     label: "TypeScript",
     template:
-      '// Here is a starter template:\n\nfunction main(): void {\n    console.log("Hello, World!");\n}\n\nmain();',
+      '// Here is a starter template:\n// White Cursor: You\n// Purple Cursor: Your Peer\n\nfunction main(): void {\n    console.log("Hello, World!");\n}\n\nmain();',
   },
   {
     value: "c",
     label: "C",
     template:
-      '// Here is a starter template:\n\n#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}',
+      '// Here is a starter template:\n// White Cursor: You\n// Purple Cursor: Your Peer\n\n#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}',
   },
   {
     value: "csharp",
     label: "C#",
     template:
-      '// Here is a starter template:\n\nusing System;\n\nclass Program {\n    static void Main(string[] args) {\n        Console.WriteLine("Hello, World!");\n    }\n}',
+      '// Here is a starter template:\n// White Cursor: You\n// Purple Cursor: Your Peer\n\nusing System;\n\nclass Program {\n    static void Main(string[] args) {\n        Console.WriteLine("Hello, World!");\n    }\n}',
   },
   {
     value: "cpp",
     label: "C++",
     template:
-      '// Here is a starter template:\n\n#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}',
+      '// Here is a starter template:\n// White Cursor: You\n// Purple Cursor: Your Peer\n\n#include <iostream>\n\nint main() {\n    std::cout << "Hello, World!" << std::endl;\n    return 0;\n}',
   },
 ];
 
