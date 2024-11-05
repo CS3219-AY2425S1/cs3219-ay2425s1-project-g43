@@ -54,7 +54,7 @@ export default function Dashboard() {
           <ProgressOverview />
         </div>
         <div className="mt-5 flex space-x-5">
-          <Questions isAdmin={true} />
+          <Questions isAdmin={false} />
           <History sessions={peerSessions} />
           <Calendar />
         </div>

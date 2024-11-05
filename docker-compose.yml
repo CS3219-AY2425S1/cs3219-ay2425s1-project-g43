@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8'
 services:
   redis:
     image: redis
@@ -53,3 +53,13 @@ services:
     volumes:
       - ./ai-service:/usr/src/app
       - /usr/src/app/node_modules
+
+  communication-service:
+    build:
+      context: ./backend/communication-service
+    ports:
+      - "3005:3005"
+    env_file:
+      - ./backend/communication-service/.env
+    environment:
+      - HOST=0.0.0.0
