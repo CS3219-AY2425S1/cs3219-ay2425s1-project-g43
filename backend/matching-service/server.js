@@ -27,6 +27,16 @@ export const io = new Server(httpServer, {
       'http://localhost:6001',
       'http://localhost:6002',
       'http://localhost:6003',
+      'http://47.129.236.67:3000',
+      'http://47.129.236.67:3001',
+      'http://47.129.236.67:3002',
+      'http://47.129.236.67:3003',
+      'http://47.129.236.67:3004',
+      'http://47.129.236.67:3005',
+      'http://47.129.236.67:6000',
+      'http://47.129.236.67:6001',
+      'http://47.129.236.67:6002',
+      'http://47.129.236.67:6003',
     ], // Allow requests from this origin
     methods: ['GET', 'POST'], // Allowed methods
     allowedHeaders: ['my-custom-header'], // Allowed headers if needed

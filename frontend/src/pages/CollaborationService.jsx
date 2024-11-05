@@ -11,13 +11,10 @@ export default function CollaborationService() {
   console.log("Question ID:", question);
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("Python");
-  const [messages, setMessages] = useState([]);
   const [problem, setProblem] = useState(question);
 
+  const roomId = location.pathname.split("/").pop();
 
-  const sendMessage = (text) => {
-    setMessages([...messages, { sender: "me", text }]);
-  };
 
   return (
     <PeerPrep>
@@ -35,7 +32,7 @@ export default function CollaborationService() {
             />
           </div>
           <div className="flex-[0.5]">
-            <ChatBox messages={messages} sendMessage={sendMessage} />
+            <ChatBox roomId={roomId} />
           </div>
         </div>
         

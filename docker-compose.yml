@@ -42,3 +42,13 @@ services:
       - ./backend/collaboration-service/.env
     environment:
       - HOST=0.0.0.0
+
+  communication-service:
+    build:
+      context: ./backend/communication-service
+    ports:
+      - "3005:3005"
+    env_file:
+      - ./backend/communication-service/.env
+    environment:
+      - HOST=0.0.0.0
