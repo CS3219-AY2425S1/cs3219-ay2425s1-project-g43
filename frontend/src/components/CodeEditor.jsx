@@ -1,70 +1,145 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCollaborativeEditor } from "../hooks/useCollaborativeEditor";
+import Button from "../components/Button";
+import Select from "../components/Select";
+import Output from "../components/Output";
+import { languages } from "../configs/monaco";
+import { executePistonCode } from "../services/CollaborationService";
 import { useLocation } from "react-router-dom";
+import { Play, Loader } from "lucide-react";
+import ThemeSelector from "./ThemeSelector";
 
-const collaborationServiceBaseUrl = import.meta.env.VITE_COLLABORATION_SERVICE_BASEURL;
+const collaborationServiceBaseUrl = import.meta.env
+  .VITE_COLLABORATION_SERVICE_BASEURL;
 
-export default function CodeEditor({ code, setCode, language, setLanguage }) {
+export default function CodeEditor() {
+  const [localLanguage, setLocalLanguage] = useState("python");
+  const [theme, setTheme] = useState("vs-dark");
+  const [output, setOutput] = useState({
+    type: "initial",
+    content: "No output yet",
+  });
+  const [isExecuting, setIsExecuting] = useState(false);
+
   const location = useLocation();
   const roomName = location.pathname.split("/").pop();
-  const { status, connectedUsers, getContent, setContent } =
-    useCollaborativeEditor({
-      roomName,
-      wsUrl: collaborationServiceBaseUrl || "ws://localhost:3006",
-      containerId: "editor-container",
-    });
 
-  const languages = ["Python", "JavaScript", "Java"];
-
-  const handleInputChange = (e) => {
-    setCode(e.target.value);
+  const user = {
+    name: `User-${Math.random()}`,
+    color: "#" + Math.floor(Math.random() * 16777215).toString(16),
   };
 
-  const renderLineNumbers = () => {
-    const lines = code.split("\n").length;
-    return Array.from({ length: lines }, (_, i) => i + 1).join("\n");
+  // Using the custom useCollaborativeEditor hook
+  const {
+    status,
+    connectedUsers,
+    getContent,
+    setContent,
+    updateLanguage,
+    changeTheme,
+    currentLanguage,
+  } = useCollaborativeEditor({
+    roomName,
+    wsUrl: collaborationServiceBaseUrl || "ws://localhost:6006",
+    containerId: "editor-container",
+    defaultLanguage: localLanguage,
+    theme,
+    user,
+  });
+
+  useEffect(() => {
+    if (currentLanguage && currentLanguage !== localLanguage) {
+      setLocalLanguage(currentLanguage);
+    }
+  }, [currentLanguage]);
+
+  // this is for running the code i.e generating output
+  const handleRun = async () => {
+    setIsExecuting(true);
+    setOutput({ type: "running", content: "Executing code..." });
+
+    try {
+      const code = getContent();
+      const result = await executePistonCode(localLanguage, code);
+
+      if (result.success) {
+        setOutput({ type: "success", content: result.output });
+      } else {
+        const errorPrefix =
+          result.errorType === "compilation"
+            ? "⚠️ Compilation Error:\n"
+            : result.errorType === "runtime"
+              ? "❌ Runtime Error:\n"
+              : "⚠️ System Error:\n";
+        setOutput({ type: "error", content: errorPrefix + result.error });
+      }
+    } catch (error) {
+      setOutput({
+        type: "error",
+        content: "⚠️ System Error:\n" + error.message,
+      });
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  const handleLanguageChange = (newLanguage) => {
+    setLocalLanguage(newLanguage);
+    updateLanguage(newLanguage);
+  };
+
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    changeTheme(newTheme);
   };
 
   return (
-    <div className="mb-8">
-      <div className="text-L mb-2 font-bold text-[#bcfe4d]">CODE EDITOR</div>
-      <div className="rounded bg-[#1e1e1e] p-4">
-        <div className="mb-4 flex gap-2">
-          {languages.map((lang) => (
-            <button
-              key={lang}
-              className={`rounded-full px-4 py-1 text-sm text-black transition-colors ${
-                language === lang
-                  ? "bg-[#bcfe4d]"
-                  : "bg-[#DDDDDD] hover:bg-[#bcfe4d]"
-              }`}
-              onClick={() => setLanguage(lang)}
-            >
-              {lang}
-            </button>
-          ))}
-        </div>
-        <div className="relative flex bg-gray-100/10">
-          <div className="bg-gray-100/10 p-2 pt-4 text-right text-[#888]">
-            <pre>{renderLineNumbers()}</pre>
-          </div>
-          <div
-            id="editor-container"
-            onChange={handleInputChange}
-            style={{ minHeight: "400px" }}
-            className="focus:ring-none h-[500px] w-full resize-none rounded bg-gray-100/10 p-4 text-white focus:outline-none focus:ring-0"
-            spellCheck="false"
-            placeholder="Write your code here..."
+    <div className="flex flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
+      <Header status={status} connectedUsers={connectedUsers} />
+
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex space-x-2">
+          <Select
+            value={localLanguage}
+            onChange={handleLanguageChange}
+            options={languages}
           />
+          <Button
+            onClick={handleRun}
+            disabled={isExecuting}
+            icon={isExecuting ? Loader : Play}
+          >
+            {isExecuting ? "Running..." : "Run"}
+          </Button>
         </div>
-        <div className="mt-4 flex justify-end gap-2">
-          <button className="rounded-full bg-[#DDDDDD] px-4 py-1 text-sm text-black transition-colors hover:bg-[#bcfe4d]">
-            Run
-          </button>
-          <button className="rounded-full bg-[#bcfe4d] px-4 py-1 text-sm text-black transition-colors hover:bg-[#a6e636]">
-            Submit
-          </button>
-        </div>
+        <ThemeSelector onThemeChange={handleThemeChange} />
+      </div>
+
+      <div
+        id="editor-container"
+        className="h-[400px] w-full overflow-hidden rounded-lg border border-gray-700/30 bg-[#1e1e1e]"
+      />
+
+      <Output output={output} />
+    </div>
+  );
+}
+
+function Header({ status, connectedUsers }) {
+  return (
+    <div className="mb-4 flex items-center justify-between">
+      <div className="text-md mb-2 font-bold text-[#bcfe4d]">CODE EDITOR</div>
+      <div className="flex items-center gap-2">
+        <div
+          className={`h-2 w-2 rounded-full ${
+            status === "connected" ? "bg-green-400" : "bg-red-500"
+          }`}
+        />
+        <span className="text-sm text-gray-400">
+          {status === "connected"
+            ? `${connectedUsers} user${connectedUsers !== 1 ? "s" : ""} connected`
+            : "Disconnected"}
+        </span>
       </div>
     </div>
   );
