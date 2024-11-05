@@ -9,34 +9,24 @@ export default function CollaborationService() {
   const location = useLocation();
   const question = location.state?.question;
   console.log("Question ID:", question);
-  const [code, setCode] = useState("");
-  const [language, setLanguage] = useState("Python");
   const [problem, setProblem] = useState(question);
-
   const roomId = location.pathname.split("/").pop();
-
 
   return (
     <PeerPrep>
       <main className="flex-1 overflow-auto">
-        <div className="flex gap-4"> 
+        <div className="flex gap-4">
           <div className="flex-1">
             <Problems problem={problem} />
           </div>
           <div className="flex-[1.5]">
-            <CodeEditor
-              code={code}
-              setCode={setCode}
-              language={language}
-              setLanguage={setLanguage}
-            />
+            <CodeEditor />
           </div>
           <div className="flex-[0.5]">
             <ChatBox roomId={roomId} />
           </div>
         </div>
-        
       </main>
     </PeerPrep>
-  );  
+  );
 }

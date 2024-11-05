@@ -23,6 +23,23 @@ body {
     sans-serif;
 }
 
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.remote-cursor {
+  border-left: 2px solid var(--cursor-color, rgb(88, 111, 245)) !important;
+  animation: blink 1s step-end infinite; 
+}
+
+.remote-selection {
+  background-color: rgba(var(88, 100, 100, 255), 0.1);
+  border: 1px solid rgba(var(88, 100, 100, 255), 0.2);
+}
+
+
 ::-webkit-scrollbar {
   display: none;
 }
