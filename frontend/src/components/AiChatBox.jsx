@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-export default function ChatBox({ messages, sendMessage, problem }) {
+export default function AiChatBox({ messages, sendMessage, problem }) {
   const [newMessage, setNewMessage] = useState("");
   const [aiMessage, setAiMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
