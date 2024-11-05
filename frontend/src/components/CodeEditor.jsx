@@ -29,7 +29,7 @@ export default function CodeEditor() {
     color: "#" + Math.floor(Math.random() * 16777215).toString(16),
   };
 
-  // Using the custom hook with synchronization capabilities
+  // Using the custom useCollaborativeEditor hook
   const {
     status,
     connectedUsers,
