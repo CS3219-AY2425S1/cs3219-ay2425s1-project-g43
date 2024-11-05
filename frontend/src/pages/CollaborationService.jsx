@@ -9,12 +9,8 @@ export default function CollaborationService() {
   const location = useLocation();
   const question = location.state?.question;
   console.log("Question ID:", question);
-  const [messages, setMessages] = useState([]);
   const [problem, setProblem] = useState(question);
-
-  const sendMessage = (text) => {
-    setMessages([...messages, { sender: "me", text }]);
-  };
+  const roomId = location.pathname.split("/").pop();
 
   return (
     <PeerPrep>
@@ -27,7 +23,7 @@ export default function CollaborationService() {
             <CodeEditor />
           </div>
           <div className="flex-[0.5]">
-            <ChatBox messages={messages} sendMessage={sendMessage} />
+            <ChatBox roomId={roomId} />
           </div>
         </div>
       </main>
