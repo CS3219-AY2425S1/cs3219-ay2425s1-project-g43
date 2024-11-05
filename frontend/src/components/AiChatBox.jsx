@@ -76,7 +76,7 @@ export default function AiChatBox({ messages, sendMessage, problem }) {
 
   return (
     <div className="mb-8">
-      <div className="text-L font-bold text-[#bcfe4d] mb-2">CHAT</div>
+      <div className="text-L font-bold text-[#bcfe4d] mb-2">AI Assistant</div>
       <div className="bg-[#1e1e1e] rounded p-4 flex flex-col">
         {/* Scrollable chat history */}
         <div className="flex-1 overflow-y-auto mb-4" style={{ maxHeight: "250px" }}>
@@ -99,27 +99,6 @@ export default function AiChatBox({ messages, sendMessage, problem }) {
           )}
           <div ref={messagesEndRef} />
         </div>
-
-        {/* User Chatbox */}
-        <div className="flex gap-2 items-center">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSendUserMessage()}
-            className="flex-1 bg-[#333333] text-white px-4 py-2 rounded-full focus:outline-none focus:ring-1 focus:ring-[#bcfe4d]"
-            placeholder="Type your message here..."
-            disabled={isLoading}
-            style={{ height: "40px" }}
-          />
-          <button
-            onClick={handleSendUserMessage}
-            className="px-4 py-2 rounded-full text-sm text-black bg-[#bcfe4d] hover:bg-[#a6e636] transition-colors"
-          >
-            Send
-          </button>
-        </div>
-
         {/* AI Assistance Chatbox */}
         <p className="text-sm text-gray-400 mt-4 mb-2">
           AI Assistance Chat

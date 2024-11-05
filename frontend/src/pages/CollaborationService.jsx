@@ -9,12 +9,13 @@ import Problems from "../components/Problems";
 export default function CollaborationService() {
   const location = useLocation();
   const question = location.state?.question;
-  console.log("Question ID:", question);
   const [problem, setProblem] = useState(question);
-  const sendMessage = (text, sender = "me") => {
-    setMessages([...messages, { sender, text }]);
-  };
+  const [messages, setMessages] = useState([]); // Initialize messages state
   const roomId = location.pathname.split("/").pop();
+
+  const sendMessage = (text, sender = "me") => {
+    setMessages((prevMessages) => [...prevMessages, { sender, text }]);
+  };
 
   return (
     <PeerPrep>
@@ -27,12 +28,12 @@ export default function CollaborationService() {
             <CodeEditor />
           </div>
           <div className="flex-[0.5]">
+            <ChatBox roomId={roomId} messages={messages} setMessages={setMessages} />
             <AiChatBox 
-                messages={messages} 
-                sendMessage={sendMessage} 
-                problem={problem}
-              />
-            <ChatBox roomId={roomId} />
+              messages={messages} 
+              sendMessage={sendMessage} 
+              problem={problem} 
+            />
           </div>
         </div>
       </main>
