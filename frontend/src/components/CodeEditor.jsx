@@ -40,7 +40,7 @@ export default function CodeEditor() {
     currentLanguage,
   } = useCollaborativeEditor({
     roomName,
-    wsUrl: collaborationServiceBaseUrl || "ws://localhost:6006",
+    wsUrl: collaborationServiceBaseUrl || "ws://localhost:3006",
     containerId: "editor-container",
     defaultLanguage: localLanguage,
     theme,
