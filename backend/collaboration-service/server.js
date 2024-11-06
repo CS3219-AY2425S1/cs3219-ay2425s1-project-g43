@@ -99,21 +99,32 @@ wss.on('connection', (conn, req, roomName) => {
   console.log(`Client joined room: ${roomName}`);
 
   // Set up Y-WebSocket connection
-  setupWSConnection(conn, req);
+  try {
+    setupWSConnection(conn, req);
+  } catch (err) {
+    console.error('Error setting up WebSocket connection:', err);
+    conn.close();
+  }
 
   // Handle disconnection
   conn.on('close', async () => {
     const roomClients = rooms.get(roomName);
-    roomClients.delete(conn);
-    console.log(`Client left room: ${roomName}`);
+    if (roomClients) {
+      roomClients.delete(conn);
+      console.log(`Client left room: ${roomName}`);
 
-    // If room is empty, save document and clean up
-    if (roomClients.size === 0) {
-      const doc = docs.get(roomName);
-      await saveDocument(roomName, doc);
-      rooms.delete(roomName);
-      docs.delete(roomName);
-      console.log(`Room ${roomName} is empty, saved and cleaned up`);
+      // If room is empty, save document and clean up
+      if (roomClients.size === 0) {
+        const doc = docs.get(roomName);
+        await saveDocument(roomName, doc);
+        rooms.delete(roomName);
+        docs.delete(roomName);
+        console.log(`Room ${roomName} is empty, saved and cleaned up`);
+      }
+    } else {
+      console.warn(
+        `Room ${roomName} not found when trying to remove connection.`
+      );
     }
   });
 });

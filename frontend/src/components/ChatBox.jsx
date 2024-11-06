@@ -57,6 +57,7 @@ export default function ChatBox({ roomId }) {
       // Leave the room
       console.log("Leaving room:", roomId);
       communicationService.disconnect();
+      localStorage.removeItem(sessionKey);
     };
   }, [roomId]);
 
