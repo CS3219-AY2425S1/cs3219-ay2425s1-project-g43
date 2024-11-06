@@ -18,7 +18,7 @@ const hashCode = (str) => {
 
 export const useCollaborativeEditor = ({
   roomName = "default-room",
-  wsUrl = "ws://localhost:3006",
+  wsUrl = "ws://localhost:6006",
   containerId = "editor-container",
   defaultLanguage = "python",
   theme = "vs-dark",
