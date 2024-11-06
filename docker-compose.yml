@@ -48,11 +48,10 @@ services:
       context: ./backend/ai-service
     ports:
       - "3007:3007"
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    env_file:
+      - ./backend/ai-service/.env
     volumes:
-      - ./ai-service:/usr/src/app
-      - /usr/src/app/node_modules
+      - ./backend/ai-service:/usr/src/app
 
   communication-service:
     build:
