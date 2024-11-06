@@ -3,14 +3,19 @@ import { useLocation } from "react-router-dom";
 import PeerPrep from "./PeerPrep";
 import CodeEditor from "../components/CodeEditor";
 import ChatBox from "../components/ChatBox";
+import AiChatBox from "../components/AiChatBox";
 import Problems from "../components/Problems";
 
 export default function CollaborationService() {
   const location = useLocation();
   const question = location.state?.question;
-  console.log("Question ID:", question);
   const [problem, setProblem] = useState(question);
+  const [messages, setMessages] = useState([]); // Initialize messages state
   const roomId = location.pathname.split("/").pop();
+
+  const sendMessage = (text, sender = "me") => {
+    setMessages((prevMessages) => [...prevMessages, { sender, text }]);
+  };
 
   return (
     <PeerPrep>
@@ -23,7 +28,12 @@ export default function CollaborationService() {
             <CodeEditor />
           </div>
           <div className="flex-[0.5]">
-            <ChatBox roomId={roomId} />
+            <ChatBox roomId={roomId} messages={messages} setMessages={setMessages} />
+            <AiChatBox 
+              messages={messages} 
+              sendMessage={sendMessage} 
+              problem={problem} 
+            />
           </div>
         </div>
       </main>

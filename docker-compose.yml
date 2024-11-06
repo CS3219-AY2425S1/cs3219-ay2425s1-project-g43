@@ -43,6 +43,17 @@ services:
     environment:
       - HOST=0.0.0.0
 
+  ai-service:
+    build: 
+      context: ./backend/ai-service
+    ports:
+      - "3007:3007"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./ai-service:/usr/src/app
+      - /usr/src/app/node_modules
+
   communication-service:
     build:
       context: ./backend/communication-service
