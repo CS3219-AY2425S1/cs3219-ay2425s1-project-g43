@@ -7,7 +7,7 @@ export default function Problems({ problem }) {
   }
 
   return (
-    <div className="flex h-[87vh] flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
+    <div className="flex h-[88vh] flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
       <div className="text-md mb-2 font-bold text-[#bcfe4d]">PROBLEM</div>
 
       {/* Header Section with Title and Complexity Badge */}

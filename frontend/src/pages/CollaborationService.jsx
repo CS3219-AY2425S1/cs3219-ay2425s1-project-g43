@@ -10,7 +10,7 @@ export default function CollaborationService() {
   const location = useLocation();
   const question = location.state?.question;
   const [problem, setProblem] = useState(question);
-  const [messages, setMessages] = useState([]); // Initialize messages state
+  const [messages, setMessages] = useState([]); 
   const roomId = location.pathname.split("/").pop();
 
   const sendMessage = (text, sender = "me") => {
@@ -20,19 +20,25 @@ export default function CollaborationService() {
   return (
     <PeerPrep>
       <main className="flex-1 overflow-auto">
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
           <div className="flex-1">
             <Problems problem={problem} />
           </div>
+
           <div className="flex-[1.5]">
             <CodeEditor />
           </div>
-          <div className="flex-[0.5]">
-            <ChatBox roomId={roomId} messages={messages} setMessages={setMessages} />
-            <AiChatBox 
-              messages={messages} 
-              sendMessage={sendMessage} 
-              problem={problem} 
+
+          <div className="flex min-w-[250px] flex-shrink flex-col lg:w-1/4">
+            <ChatBox
+              roomId={roomId}
+              messages={messages}
+              setMessages={setMessages}
+            />
+            <AiChatBox
+              messages={messages}
+              sendMessage={sendMessage}
+              problem={problem}
             />
           </div>
         </div>

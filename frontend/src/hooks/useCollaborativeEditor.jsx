@@ -18,312 +18,203 @@ const hashCode = (str) => {
 
 export const useCollaborativeEditor = ({
   roomName = "default-room",
-  wsUrl = "ws://localhost:6006",
+  wsUrl = "ws://localhost:3006",
   containerId = "editor-container",
   defaultLanguage = "python",
   theme = "vs-dark",
-  user = {
-    name: `User-${Math.random().toString(36).from(2, 5)}`,
-    color: `#${Math.abs(hashCode(user.name)).toString(16).substring(0, 6)}`,
-  },
+  user,
 }) => {
+  if (!user) {
+    const randomName = `Anonymous-${Math.random().toString(36).substring(2, 5)}`;
+    user = {
+      name: randomName,
+      color: `#${Math.abs(hashCode(randomName)).toString(16).substring(0, 6)}`,
+    };
+  }
+
   const [status, setStatus] = useState("connecting");
   const [connectedUsers, setConnectedUsers] = useState(0);
-  const [initialTemplate, setInitialTemplate] = useState("");
   const [editor, setEditor] = useState(null);
   const [provider, setProvider] = useState(null);
   const [currentLanguage, setCurrentLanguage] = useState(defaultLanguage);
-  const pendingLanguage = useRef(null);
-  const decorationsRef = useRef([]);
+
+  const decorationCollection = useRef(null);
   const awarenessRef = useRef(null);
-  const isUpdatingRef = useRef(false);
-  const pendingUpdateRef = useRef(null);
+
+  const getTemplateForLanguage = (language) => {
+    return languages.find((lang) => lang.value === language)?.template || "";
+  };
 
   useEffect(() => {
-    let yDoc, wsProvider, monacoEditor, yText, yLanguage;
+    let yDoc = new Y.Doc();
+    let wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc);
+    let yText = yDoc.getText("content");
+    let yLanguage = yDoc.getMap("language");
 
-    // for different cursors
-    const updateDecorations = (states) => {
-      if (!monacoEditor || isUpdatingRef.current) {
-        pendingUpdateRef.current = states; // Store pending states to process later
-        return;
-      }
+    setProvider(wsProvider);
 
-      try {
-        isUpdatingRef.current = true; 
-        const decorationArray = [];
-
-        states.forEach((state) => {
-          const isLocalUser = state.user.name === user.name;
-          const userColor = state.user.color || "#000000";
-
-          if (!state.user || state.user.name === user.name) return;
-
-          if (state.cursor || isLocalUser) {
-            decorationArray.push({
-              range: new monaco.Range(
-                state.cursor?.lineNumber ||
-                  monacoEditor.getPosition().lineNumber,
-                state.cursor?.column || monacoEditor.getPosition().column,
-                state.cursor?.lineNumber ||
-                  monacoEditor.getPosition().lineNumber,
-                state.cursor?.column || monacoEditor.getPosition().column,
-              ),
-              options: {
-                className: `remote-cursor`,
-                beforeContentClassName: `cursor-tooltip`,
-                beforeContent: {
-                  content: state.user.name,
-                },
-                beforeContentStyle: {
-                  color: "white",
-                  backgroundColor: userColor,
-                },
-                inlineClassName: `remote-cursor`,
-                inlineClassNameAffectsLetterSpacing: true,
-                inlineClassNameStyle: {
-                  "--cursor-color": userColor,
-                },
-              },
-            });
-          }
-
-          if (state.selection && !isLocalUser) {
-            decorationArray.push({
-              range: new monaco.Range(
-                state.selection.startLineNumber,
-                state.selection.startColumn,
-                state.selection.endLineNumber,
-                state.selection.endColumn,
-              ),
-              options: {
-                className: `remote-selection`,
-                inlineClassName: `remote-selection`,
-                inlineClassNameAffectsLetterSpacing: true,
-                inlineClassNameStyle: {
-                  "--selection-color": userColor,
-                },
-              },
-            });
-          }
-        });
-
-        decorationsRef.current = monacoEditor.deltaDecorations(
-          decorationsRef.current,
-          decorationArray,
-        );
-      } finally {
-        isUpdatingRef.current = false;
-
-        // Process any pending update after the current one completes
-        if (pendingUpdateRef.current) {
-          const pendingStates = pendingUpdateRef.current;
-          pendingUpdateRef.current = null; // Clear pending updates
-          setTimeout(() => updateDecorations(pendingStates), 0); // Call again to process pending
-        }
-      }
-    };
-
-    // intialize the editor
-    const initializeEditor = () => {
-      yDoc = new Y.Doc();
-      wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc, {
-        reconnect: true,
-      });
-
-      setProvider(wsProvider);
-
-      yText = yDoc.getText("sharedCode");
-      yLanguage = yDoc.getMap("language");
-
-      if (!yLanguage.has("selectedLanguage")) {
-        yLanguage.set("selectedLanguage", defaultLanguage);
-      }
-
-      const container = document.getElementById(containerId);
-      if (!container) {
-        throw new Error(`Container with id '${containerId}' not found`);
-      }
-
-      const awareness = wsProvider.awareness;
-      awarenessRef.current = awareness;
-
-      // Debounce the connected users update
-      const handleAwarenessChange = () => {
-        const states = Array.from(awareness.getStates().values());
-        setConnectedUsers(states.length);
-
-        if (!monacoEditor) return;
-
-        const decorationArray = [];
-        states.forEach((state) => {
-          if (!state.user || state.user.name === user.name) return;
-
-          if (state.cursor) {
-            decorationArray.push({
-              range: new monaco.Range(
-                state.cursor.lineNumber,
-                state.cursor.column,
-                state.cursor.lineNumber,
-                state.cursor.column,
-              ),
-              options: {
-                className: `remote-cursor`,
-                beforeContentClassName: `cursor-badge background-${state.user.color.replace("#", "")}`,
-                beforeContent: {
-                  content: `${state.user.name}`,
-                },
-              },
-            });
-          }
-
-          if (state.selection) {
-            decorationArray.push({
-              range: new monaco.Range(
-                state.selection.startLineNumber,
-                state.selection.startColumn,
-                state.selection.endLineNumber,
-                state.selection.endColumn,
-              ),
-              options: {
-                className: `remote-selection background-${state.user.color.replace("#", "")}`,
-              },
-            });
-          }
-        });
-
-        decorationsRef.current = monacoEditor.deltaDecorations(
-          decorationsRef.current,
-          decorationArray,
-        );
-      };
-
-      awareness.on("change", handleAwarenessChange);
-
-      // Create the Monaco Editor instance
-      monacoEditor = monaco.editor.create(container, {
-        ...editorDefaultOptions,
-        theme,
-        language: yLanguage.get("selectedLanguage"),
-        automaticLayout: true,
-      });
-
-      // Add cursor position change handler
-      const handleCursorChange = (e) => {
-        if (!awareness) return;
-        const localState = awareness.getLocalState() || {};
-        awareness.setLocalState({
-          ...localState,
-          user,
-          cursor: e.position,
-        });
-      };
-
-      // Add selection change handler
-      const handleSelectionChange = (e) => {
-        if (!awareness) return;
-        const localState = awareness.getLocalState() || {};
-        awareness.setLocalState({
-          ...localState,
-          user,
-          selection: e.selection,
-        });
-      };
-
-      monacoEditor.onDidChangeCursorPosition(handleCursorChange);
-      monacoEditor.onDidChangeCursorSelection(handleSelectionChange);
-
-      // Set initial awareness state
-      awareness.setLocalState({
-        user,
-        cursor: monacoEditor.getPosition() || undefined,
-        selection: monacoEditor.getSelection() || undefined,
-      });
-
-      setEditor(monacoEditor);
-
-      new MonacoBinding(
-        yText,
-        monacoEditor.getModel(),
-        new Set([monacoEditor]),
-        awareness,
-      );
-
-      wsProvider.on("status", ({ status }) => setStatus(status));
-
-      wsProvider.on("synced", (isSynced) => {
-        if (isSynced && !yText.length) {
-          const template = getTemplateForLanguage(
-            yLanguage.get("selectedLanguage"),
-          );
-          yText.insert(0, template);
-          setInitialTemplate(template);
-        }
-      });
-
-      yLanguage.observe(() => {
-        const newLanguage = yLanguage.get("selectedLanguage");
-        if (newLanguage && newLanguage !== currentLanguage) {
-          setCurrentLanguage(newLanguage);
-          monaco.editor.setModelLanguage(monacoEditor.getModel(), newLanguage);
-
-          const currentContent = monacoEditor.getModel().getValue();
-          if (currentContent === initialTemplate) {
-            const newTemplate = getTemplateForLanguage(newLanguage);
-            yText.delete(0, yText.length);
-            yText.insert(0, newTemplate);
-            setInitialTemplate(newTemplate);
-          }
-        }
-      });
-    };
-
-    try {
-      initializeEditor();
-    } catch (error) {
-      console.error("Error initializing collaborative editor:", error);
-      setStatus("error");
+    // Initialize yLanguage
+    if (!yLanguage.get("selectedLanguage")) {
+      yLanguage.set("selectedLanguage", defaultLanguage);
     }
 
-    return () => {
-      if (monacoEditor) {
-        isUpdatingRef.current = true; // Prevent any further updates
-        decorationsRef.current = monacoEditor.deltaDecorations(
-          decorationsRef.current,
-          [],
+    const container = document.getElementById(containerId);
+    if (!container) {
+      console.error(`Container with id '${containerId}' not found`);
+      return;
+    }
+
+    // Create editor with default options
+    const monacoEditor = monaco.editor.create(container, {
+      ...editorDefaultOptions,
+      theme,
+      language: defaultLanguage,
+      automaticLayout: true,
+    });
+
+    // Initialize decoration collection after editor is created
+    decorationCollection.current = monacoEditor.createDecorationsCollection();
+
+    setEditor(monacoEditor);
+
+    // Add template handling
+    wsProvider.on("synced", (isSynced) => {
+      if (isSynced && !yText.toString()) {
+        const template = getTemplateForLanguage(
+          yLanguage.get("selectedLanguage") || defaultLanguage,
         );
+        yText.insert(0, template);
+      }
+    });
+
+    // Set up Monaco binding
+    new MonacoBinding(
+      yText,
+      monacoEditor.getModel(),
+      new Set([monacoEditor]),
+      wsProvider.awareness,
+    );
+
+    // Set up awareness
+    const awareness = wsProvider.awareness;
+    awarenessRef.current = awareness;
+
+    // Update awareness state with user info and cursor
+    awareness.setLocalState({
+      user,
+      cursor: monacoEditor.getPosition(),
+    });
+
+    // Handle cursor position changes
+    monacoEditor.onDidChangeCursorPosition((e) => {
+      const state = awareness.getLocalState();
+      if (state) {
+        awareness.setLocalState({
+          ...state,
+          cursor: e.position,
+        });
+      }
+    });
+
+    // Handle remote cursors
+    awareness.on("change", () => {
+      const states = Array.from(awareness.getStates().values());
+      setConnectedUsers(states.length);
+
+      const decorations = [];
+      states.forEach((state) => {
+        if (!state.user || state.user.name === user.name) return;
+
+        if (state.cursor) {
+          decorations.push({
+            range: new monaco.Range(
+              state.cursor.lineNumber,
+              state.cursor.column,
+              state.cursor.lineNumber,
+              state.cursor.column,
+            ),
+            options: {
+              className: "remote-cursor",
+              hoverMessage: [
+                {
+                  value: state.user.name,
+                  isTrusted: true,
+                },
+              ],
+              stickiness:
+                monaco.editor.TrackedRangeStickiness
+                  .NeverGrowsWhenTypingAtEdges,
+              inlineClassName: "remote-cursor",
+              inlineClassNameAffectsLetterSpacing: true,
+              inlineClassNameStyle: {
+                "--cursor-color": state.user.color || "#9333ea",
+              },
+            },
+          });
+        }
+      });
+
+      decorationCollection.current.set(decorations);
+    });
+
+    // Handle connection status
+    wsProvider.on("status", ({ status }) => {
+      console.log("WebSocket status:", status);
+      setStatus(status);
+    });
+
+    // Handle language changes
+    yLanguage.observe(() => {
+      const newLanguage = yLanguage.get("selectedLanguage");
+      if (newLanguage && newLanguage !== currentLanguage) {
+        setCurrentLanguage(newLanguage);
+        monaco.editor.setModelLanguage(monacoEditor.getModel(), newLanguage);
+      }
+    });
+
+    // Cleanup
+    return () => {
+      if (decorationCollection.current) {
+        decorationCollection.current.clear();
+      }
+      if (monacoEditor) {
         monacoEditor.dispose();
       }
       if (wsProvider) {
         wsProvider.awareness.setLocalState(null);
         wsProvider.destroy();
       }
-      if (yDoc) yDoc.destroy();
+      if (yDoc) {
+        yDoc.destroy();
+      }
     };
-  }, [roomName, wsUrl, containerId, theme, defaultLanguage]); // do not add any other dependency, otherwise the cursor won't work
+  }, [roomName, wsUrl, containerId, theme, defaultLanguage, user]);
 
-  const changeTheme = (newTheme) => {
-    monaco.editor.setTheme(newTheme);
-  };
+  const getContent = () => editor?.getModel()?.getValue() || "";
 
-  const getTemplateForLanguage = (language) => {
-    return languages.find((lang) => lang.value === language)?.template || "";
+  const setContent = (content) => {
+    if (editor) {
+      editor.getModel()?.setValue(content);
+    }
   };
 
   const updateLanguage = (newLanguage) => {
     if (provider) {
       const yLanguage = provider.doc.getMap("language");
+      const yText = provider.doc.getText("content");
+
+      // Update the language
       yLanguage.set("selectedLanguage", newLanguage);
-    } else {
-      pendingLanguage.current = newLanguage;
+
+      // Update the content with new template
+      const template = getTemplateForLanguage(newLanguage);
+      yText.delete(0, yText.length);
+      yText.insert(0, template);
     }
   };
 
-  const getContent = () => editor?.getModel().getValue() || "";
-  const setContent = (content) => {
-    if (editor) {
-      editor.getModel().setValue(content);
-    }
+  const changeTheme = (newTheme) => {
+    monaco.editor.setTheme(newTheme);
   };
 
   return {
