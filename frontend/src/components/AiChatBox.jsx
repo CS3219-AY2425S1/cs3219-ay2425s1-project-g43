@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 
+const aiServiceBaseUrl = 'http://localhost:3007';
+
+console.log(aiServiceBaseUrl);
 export default function AiChatBox({ messages, sendMessage, problem }) {
   const [newMessage, setNewMessage] = useState("");
   const [aiMessage, setAiMessage] = useState("");
@@ -38,7 +41,7 @@ export default function AiChatBox({ messages, sendMessage, problem }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3007/api/ai/chat", {
+      const response = await fetch(`${aiServiceBaseUrl}/api/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
