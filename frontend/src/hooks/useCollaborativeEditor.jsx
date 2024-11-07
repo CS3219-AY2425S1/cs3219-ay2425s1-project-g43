@@ -47,7 +47,11 @@ export const useCollaborativeEditor = ({
 
   useEffect(() => {
     let yDoc = new Y.Doc();
-    let wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc);
+    const token = localStorage.getItem("jwtToken");
+    // Create WebSocket connection
+    const wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc, {
+      params: { token, roomName },
+    });
     let yText = yDoc.getText("content");
     let yLanguage = yDoc.getMap("language");
 
