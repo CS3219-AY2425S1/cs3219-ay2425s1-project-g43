@@ -21,9 +21,11 @@ export const useCollaborativeEditor = ({
     const initEditor = () => {
       // Initialize Yjs document
       yDoc = new Y.Doc();
-
+      const token = localStorage.getItem("jwtToken");
       // Create WebSocket connection
-      wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc);
+      wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc, {
+        params: { token, roomName },
+      });
 
       // Get the shared text
       const yText = yDoc.getText("codemirror");
