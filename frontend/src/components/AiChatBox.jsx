@@ -11,9 +11,11 @@ export default function AiChatBox({ messages, sendMessage, problem }) {
   const messagesEndRef = useRef(null);
 
   // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatHistory]);
+  // useEffect(() => {
+  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // }, [chatHistory]);
+
+  useEffect(() => { if (messagesEndRef.current) { messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight; } }, [chatHistory, isLoading]);
 
   const handleSendUserMessage = () => {
     if (!newMessage.trim()) return;
