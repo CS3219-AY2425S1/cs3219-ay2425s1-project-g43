@@ -31,18 +31,9 @@ export default function CodeEditor() {
     pendingLanguage: null,
   });
 
-  const user = React.useMemo(
-    () => ({
-      name: `Anonymous-${Math.random().toString(36).substr(2, 9)}`,
-      color: `hsl(${Math.random() * 360}, 70%, 50%)`,
-    }),
-    [],
-  ); 
-
   const {
     status,
     editor,
-    connectedUsers,
     currentLanguage,
     getContent,
     setContent,
@@ -54,7 +45,6 @@ export default function CodeEditor() {
     containerId: "editor-container",
     defaultLanguage: localLanguage,
     theme,
-    user,
   });
 
   // Sync local language with shared language
@@ -145,7 +135,7 @@ export default function CodeEditor() {
 
   return (
     <div className="flex w-full flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
-      <Header status={status} connectedUsers={connectedUsers} />
+      <Header status={status} />
 
       <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -185,7 +175,7 @@ export default function CodeEditor() {
   );
 }
 
-function Header({ status, connectedUsers }) {
+function Header({ status }) {
   return (
     <div className="mb-4 flex items-center justify-between">
       <div className="text-md mb-2 font-bold text-[#bcfe4d]">CODE EDITOR</div>
@@ -196,9 +186,7 @@ function Header({ status, connectedUsers }) {
           }`}
         />
         <span className="text-sm text-gray-400">
-          {status === "connected"
-            ? `${connectedUsers} user${connectedUsers !== 1 ? "s" : ""} connected`
-            : "Disconnected"}
+          {status === "connected" ? "Connected" : "Disconnected"}
         </span>
       </div>
     </div>

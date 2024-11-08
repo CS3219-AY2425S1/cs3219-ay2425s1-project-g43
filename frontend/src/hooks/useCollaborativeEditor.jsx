@@ -6,40 +6,18 @@ import { MonacoBinding } from "y-monaco";
 import { languages, editorDefaultOptions } from "../configs/monaco";
 import "../configs/monaco";
 
-const hashCode = (str) => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash;
-  }
-  return hash;
-};
-
 export const useCollaborativeEditor = ({
   roomName = "default-room",
   wsUrl = "ws://localhost:3006",
   containerId = "editor-container",
   defaultLanguage = "python",
   theme = "vs-dark",
-  user,
 }) => {
-  if (!user) {
-    const randomName = `Anonymous-${Math.random().toString(36).substring(2, 5)}`;
-    user = {
-      name: randomName,
-      color: `#${Math.abs(hashCode(randomName)).toString(16).substring(0, 6)}`,
-    };
-  }
-
   const [status, setStatus] = useState("connecting");
   const [connectedUsers, setConnectedUsers] = useState(0);
   const [editor, setEditor] = useState(null);
   const [provider, setProvider] = useState(null);
   const [currentLanguage, setCurrentLanguage] = useState(defaultLanguage);
-
-  const decorationCollection = useRef(null);
-  const awarenessRef = useRef(null);
 
   const getTemplateForLanguage = (language) => {
     return languages.find((lang) => lang.value === language)?.template || "";
@@ -72,9 +50,6 @@ export const useCollaborativeEditor = ({
       automaticLayout: true,
     });
 
-    // Initialize decoration collection after editor is created
-    decorationCollection.current = monacoEditor.createDecorationsCollection();
-
     setEditor(monacoEditor);
 
     // Add template handling
@@ -95,68 +70,6 @@ export const useCollaborativeEditor = ({
       wsProvider.awareness,
     );
 
-    // Set up awareness
-    const awareness = wsProvider.awareness;
-    awarenessRef.current = awareness;
-
-    // Update awareness state with user info and cursor
-    awareness.setLocalState({
-      user,
-      cursor: monacoEditor.getPosition(),
-    });
-
-    // Handle cursor position changes
-    monacoEditor.onDidChangeCursorPosition((e) => {
-      const state = awareness.getLocalState();
-      if (state) {
-        awareness.setLocalState({
-          ...state,
-          cursor: e.position,
-        });
-      }
-    });
-
-    // Handle remote cursors
-    awareness.on("change", () => {
-      const states = Array.from(awareness.getStates().values());
-      setConnectedUsers(states.length);
-
-      const decorations = [];
-      states.forEach((state) => {
-        if (!state.user || state.user.name === user.name) return;
-
-        if (state.cursor) {
-          decorations.push({
-            range: new monaco.Range(
-              state.cursor.lineNumber,
-              state.cursor.column,
-              state.cursor.lineNumber,
-              state.cursor.column,
-            ),
-            options: {
-              className: "remote-cursor",
-              hoverMessage: [
-                {
-                  value: state.user.name,
-                  isTrusted: true,
-                },
-              ],
-              stickiness:
-                monaco.editor.TrackedRangeStickiness
-                  .NeverGrowsWhenTypingAtEdges,
-              inlineClassName: "remote-cursor",
-              inlineClassNameAffectsLetterSpacing: true,
-              inlineClassNameStyle: {
-                "--cursor-color": state.user.color || "#9333ea",
-              },
-            },
-          });
-        }
-      });
-
-      decorationCollection.current.set(decorations);
-    });
-
     // Handle connection status
     wsProvider.on("status", ({ status }) => {
       console.log("WebSocket status:", status);
@@ -174,21 +87,17 @@ export const useCollaborativeEditor = ({
 
     // Cleanup
     return () => {
-      if (decorationCollection.current) {
-        decorationCollection.current.clear();
-      }
       if (monacoEditor) {
         monacoEditor.dispose();
       }
       if (wsProvider) {
-        wsProvider.awareness.setLocalState(null);
         wsProvider.destroy();
       }
       if (yDoc) {
         yDoc.destroy();
       }
     };
-  }, [roomName, wsUrl, containerId, theme, defaultLanguage, user]);
+  }, [roomName, wsUrl, containerId, theme, defaultLanguage]);
 
   const getContent = () => editor?.getModel()?.getValue() || "";
 
