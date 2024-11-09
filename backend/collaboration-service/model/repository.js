@@ -11,17 +11,12 @@ export async function connectToDB() {
   await connect(mongoDBUri);
 }
 
-export async function saveUserHistory(
-  firstUserId,
-  secondUserId,
-  questionId,
-  document
-) {
+export async function createNewUserHistory(firstUserId, question) {
   const date = new Date();
+  const document = 'No code attempt was saved';
   const newUserHistory = new UserHistoryModel({
     firstUserId,
-    secondUserId,
-    questionId,
+    question,
     date,
     document,
   });
@@ -29,14 +24,34 @@ export async function saveUserHistory(
   return newUserHistory;
 }
 
-export async function findUserHistoryByUserId(userId) {
-  // sorted by latest first
-  const userHistory = await UserHistoryModel.find({
-    $or: [{ firstUserId: userId }, { secondUserId: userId }],
-  }).sort({ date: -1 });
-  return userHistory;
+export async function saveUserHistory(_id, document) {
+  const date = new Date();
+  const userHistory = UserHistoryModel.findById(_id);
+  if (!userHistory) {
+    return null;
+  }
+  userHistory.document = document;
+  userHistory.date = date;
+  userHistory.save();
 }
 
-export async function findUserHistoryById(id) {
-  return UserHistoryModel.findById(id);
+export async function addUserToUserHistory(_id, secondUserId) {
+  const userHistory = UserHistoryModel.findById(_id);
+  if (!userHistory) {
+    return null;
+  }
+  userHistory.secondUserId = secondUserId;
+  userHistory.save();
+}
+
+export async function findUserHistoryByUserId(userId) {
+  // sorted by latest first
+  const userHistoryList = await UserHistoryModel.find({
+    $or: [{ firstUserId: userId }, { secondUserId: userId }],
+  }).sort({ date: -1 });
+  return userHistoryList;
+}
+
+export async function findUserHistoryById(_id) {
+  return UserHistoryModel.findById(_id);
 }

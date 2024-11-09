@@ -9,7 +9,6 @@ const UserHistoryModelSchema = mongoose.Schema({
 
   secondUserId: {
     type: ObjectId,
-    required: true,
   },
 
   date: {
@@ -17,14 +16,13 @@ const UserHistoryModelSchema = mongoose.Schema({
     required: true,
   },
 
-  questionId: {
-    type: ObjectId,
+  question: {
+    type: JSON,
     required: true,
   },
 
   document: {
     type: String,
-    required: true,
   },
 });
 

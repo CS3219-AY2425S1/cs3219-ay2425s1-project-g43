@@ -23,6 +23,7 @@ export const useCollaborativeEditor = ({
   defaultLanguage = "python",
   theme = "vs-dark",
   user,
+  question,
 }) => {
   if (!user) {
     const randomName = `Anonymous-${Math.random().toString(36).substring(2, 5)}`;
@@ -46,12 +47,15 @@ export const useCollaborativeEditor = ({
   };
 
   useEffect(() => {
+    const questionString = JSON.stringify(question);
     let yDoc = new Y.Doc();
     const token = localStorage.getItem("jwtToken");
     // Create WebSocket connection
     const wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc, {
-      params: { token, roomName },
+      params: { token, roomName, questionString },
     });
+
+    console.log("NEW WS PROVIDER");
     let yText = yDoc.getText("content");
     let yLanguage = yDoc.getMap("language");
 
@@ -186,6 +190,7 @@ export const useCollaborativeEditor = ({
       }
       if (wsProvider) {
         wsProvider.awareness.setLocalState(null);
+        wsProvider.emit("leave", yDoc.getText("content").toString());
         wsProvider.destroy();
       }
       if (yDoc) {

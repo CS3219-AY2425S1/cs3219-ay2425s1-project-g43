@@ -30,6 +30,7 @@ export default function CodeEditor() {
     isOpen: false,
     pendingLanguage: null,
   });
+  const question = location.state?.question;
 
   const user = React.useMemo(
     () => ({
@@ -37,7 +38,7 @@ export default function CodeEditor() {
       color: `hsl(${Math.random() * 360}, 70%, 50%)`,
     }),
     [],
-  ); 
+  );
 
   const {
     status,
@@ -55,6 +56,7 @@ export default function CodeEditor() {
     defaultLanguage: localLanguage,
     theme,
     user,
+    question,
   });
 
   // Sync local language with shared language
