@@ -10,12 +10,12 @@ export default function AiChatBox({ messages, sendMessage, problem }) {
   const [chatHistory, setChatHistory] = useState([]);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to bottom when new messages arrive
-  // useEffect(() => {
-  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  // }, [chatHistory]);
-
-  useEffect(() => { if (messagesEndRef.current) { messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight; } }, [chatHistory, isLoading]);
+  // Load chat history from parent component
+  useEffect(() => { 
+    if (messagesEndRef.current) { 
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight; 
+    } 
+  }, [chatHistory, isLoading]);
 
   const handleSendUserMessage = () => {
     if (!newMessage.trim()) return;
@@ -30,6 +30,7 @@ export default function AiChatBox({ messages, sendMessage, problem }) {
     setNewMessage("");
   };
 
+  // Send user message to Ai component
   const handleSendAiMessage = async () => {
     if (!aiMessage.trim()) return;
 
