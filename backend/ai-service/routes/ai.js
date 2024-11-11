@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { OpenAI } = require('openai');
 
-// Initialize OpenAI with error handling
+// Initialize OpenAI
 let openai;
 if (process.env.OPENAI_API_KEY) {
   try {
@@ -16,6 +16,7 @@ if (process.env.OPENAI_API_KEY) {
   console.error('OpenAI API key is missing.');
 }
 
+// Handle chat requests
 router.post('/chat', async (req, res) => {
   try {
     const { message, context } = req.body;
@@ -23,6 +24,7 @@ router.post('/chat', async (req, res) => {
       return res.status(400).json({ error: "Message is required." });
     }
 
+    // Prepare messages for OpenAI
     const messages = [
       {
         role: "system",
@@ -40,6 +42,7 @@ router.post('/chat', async (req, res) => {
       },
     ];
 
+    // Send message to OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: messages,

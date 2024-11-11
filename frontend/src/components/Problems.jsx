@@ -10,7 +10,6 @@ export default function Problems({ problem }) {
     <div className="flex h-[88vh] flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
       <div className="text-md mb-2 font-bold text-[#bcfe4d]">PROBLEM</div>
 
-      {/* Header Section with Title and Complexity Badge */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-white">{problem.title}</h2>
         <span
@@ -27,7 +26,6 @@ export default function Problems({ problem }) {
       </div>
       <div className="h-[1px] bg-white/30"></div>
 
-      {/* Description Section */}
       <div
         className="flex-1 overflow-y-auto rounded-lg bg-[#1e1e1e]/40 px-3 py-2 text-sm font-light text-white"
         style={{ whiteSpace: "pre-line" }}

@@ -20,16 +20,14 @@ export default function CollaborationService() {
   return (
     <PeerPrep>
       <main className="flex-1 overflow-auto">
-        <div className="flex flex-wrap gap-4">
+        <div className="flex gap-4">
           <div className="flex-1">
             <Problems problem={problem} />
           </div>
-
           <div className="flex-[1.5]">
             <CodeEditor />
           </div>
-
-          <div className="flex min-w-[250px] flex-shrink flex-col lg:w-1/4">
+          <div className="flex-[0.5]">
             <ChatBox
               roomId={roomId}
               messages={messages}

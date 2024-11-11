@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 
+const aiServiceBaseUrl = 'http://localhost:3007';
+
+console.log(aiServiceBaseUrl);
 export default function AiChatBox({ messages, sendMessage, problem }) {
   const [newMessage, setNewMessage] = useState("");
   const [aiMessage, setAiMessage] = useState("");
@@ -7,10 +10,12 @@ export default function AiChatBox({ messages, sendMessage, problem }) {
   const [chatHistory, setChatHistory] = useState([]);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatHistory]);
+  // Load chat history from parent component
+  useEffect(() => { 
+    if (messagesEndRef.current) { 
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight; 
+    } 
+  }, [chatHistory, isLoading]);
 
   const handleSendUserMessage = () => {
     if (!newMessage.trim()) return;
@@ -25,6 +30,7 @@ export default function AiChatBox({ messages, sendMessage, problem }) {
     setNewMessage("");
   };
 
+  // Send user message to Ai component
   const handleSendAiMessage = async () => {
     if (!aiMessage.trim()) return;
 
@@ -38,7 +44,7 @@ export default function AiChatBox({ messages, sendMessage, problem }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3007/api/ai/chat", {
+      const response = await fetch(`${aiServiceBaseUrl}/api/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
