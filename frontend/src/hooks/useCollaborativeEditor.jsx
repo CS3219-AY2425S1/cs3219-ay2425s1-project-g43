@@ -197,7 +197,7 @@ export const useCollaborativeEditor = ({
         yDoc.destroy();
       }
     };
-  }, [roomName, wsUrl, containerId, theme, defaultLanguage, user]);
+  }, [roomName, wsUrl, containerId, user]);
 
   const getContent = () => editor?.getModel()?.getValue() || "";
 
