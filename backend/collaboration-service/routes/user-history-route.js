@@ -1,14 +1,14 @@
 import express from 'express';
 import {
-  findUserHistoryById,
   findUserHistoryByUserId,
+  getUserHistoryByRoomname,
 } from '../model/repository.js';
 import { attachUserId } from '../middleware/basic-access-control.js';
 const router = express.Router();
 
 router.get('/:id', (req, res) => {
   const { _id } = req.params;
-  const userHistory = findUserHistoryById(_id);
+  const userHistory = getUserHistoryByRoomname(_id);
   if (!userHistory) {
     return res.status(404).json({ message: 'User history not found' });
   }

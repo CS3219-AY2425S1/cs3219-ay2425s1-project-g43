@@ -49,6 +49,7 @@ export default function CodeEditor() {
     setContent,
     updateLanguage,
     changeTheme,
+    emitSave,
   } = useCollaborativeEditor({
     roomName: location.pathname.split("/").pop(),
     wsUrl: collaborationServiceBaseUrl || "ws://localhost:3006",
@@ -77,6 +78,7 @@ export default function CodeEditor() {
         throw new Error("No code to execute");
       }
 
+      emitSave();
       const result = await executePistonCode(localLanguage, code);
 
       if (result.success) {

@@ -55,7 +55,6 @@ export const useCollaborativeEditor = ({
       params: { token, roomName, questionString },
     });
 
-    console.log("NEW WS PROVIDER");
     let yText = yDoc.getText("content");
     let yLanguage = yDoc.getMap("language");
 
@@ -226,6 +225,16 @@ export const useCollaborativeEditor = ({
     monaco.editor.setTheme(newTheme);
   };
 
+  const emitSave = () => {
+    console.log("Emitting save");
+    if (provider) {
+      // provider.emit("save", { content: getContent() });
+      const event = "save";
+      const document = getContent();
+      provider.ws.send(JSON.stringify({ event, roomName, document }));
+    }
+  };
+
   return {
     status,
     editor,
@@ -236,5 +245,6 @@ export const useCollaborativeEditor = ({
     updateLanguage,
     currentLanguage,
     changeTheme,
+    emitSave,
   };
 };

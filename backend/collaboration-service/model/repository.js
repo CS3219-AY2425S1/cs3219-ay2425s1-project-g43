@@ -11,10 +11,11 @@ export async function connectToDB() {
   await connect(mongoDBUri);
 }
 
-export async function createNewUserHistory(firstUserId, question) {
+export async function createNewUserHistory(roomName, firstUserId, question) {
   const date = new Date();
   const document = 'No code attempt was saved';
   const newUserHistory = new UserHistoryModel({
+    _id: roomName,
     firstUserId,
     question,
     date,
@@ -24,24 +25,33 @@ export async function createNewUserHistory(firstUserId, question) {
   return newUserHistory;
 }
 
-export async function saveUserHistory(_id, document) {
-  const date = new Date();
-  const userHistory = UserHistoryModel.findById(_id);
-  if (!userHistory) {
-    return null;
+export async function saveUserHistory(roomName, document) {
+  try {
+    const date = new Date();
+    const userHistory = await UserHistoryModel.findById(roomName);
+    if (!userHistory) {
+      return null;
+    }
+    userHistory.document = document;
+    userHistory.date = date;
+    userHistory.save();
+    return userHistory;
+  } catch (error) {
+    console.log(error);
   }
-  userHistory.document = document;
-  userHistory.date = date;
-  userHistory.save();
 }
 
-export async function addUserToUserHistory(_id, secondUserId) {
-  const userHistory = UserHistoryModel.findById(_id);
-  if (!userHistory) {
-    return null;
+export async function addUserToUserHistory(roomName, secondUserId) {
+  try {
+    const userHistory = await UserHistoryModel.findById(roomName);
+    if (!userHistory) {
+      return null;
+    }
+    userHistory.secondUserId = secondUserId;
+    userHistory.save();
+  } catch (error) {
+    console.log(error);
   }
-  userHistory.secondUserId = secondUserId;
-  userHistory.save();
 }
 
 export async function findUserHistoryByUserId(userId) {
@@ -52,6 +62,6 @@ export async function findUserHistoryByUserId(userId) {
   return userHistoryList;
 }
 
-export async function findUserHistoryById(_id) {
-  return UserHistoryModel.findById(_id);
+export async function getUserHistoryByRoomname(roomName) {
+  return UserHistoryModel.findById(roomName);
 }

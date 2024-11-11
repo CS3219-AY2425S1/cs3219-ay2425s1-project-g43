@@ -7,16 +7,13 @@ import * as Y from 'yjs';
 import 'dotenv/config';
 import {
   saveUserHistory,
-  findUserHistoryById,
-  findUserHistoryByUserId,
+  getUserHistoryByRoomname,
   createNewUserHistory,
   addUserToUserHistory,
 } from './model/repository.js';
 import { connectToDB } from './model/repository.js';
 import jwt from 'jsonwebtoken';
 import userHistoryRouter from './routes/user-history-route.js';
-
-const roomInfo = new Map(); // roomName -> { Set<UserId>, question }
 
 // Set up Express and WebSocket server
 const app = express();
@@ -54,38 +51,42 @@ server.on('upgrade', (request, socket, head) => {
 });
 
 // Handle WebSocket connections
-wss.on('connection', (conn, req, roomName, userId, question) => {
+wss.on('connection', async (conn, req, roomName, userId, question) => {
   // Set up Y-WebSocket connection
   try {
     setupWSConnection(conn, req);
     console.log(`Client ${userId} joined room: ${roomName}`);
 
-    if (!roomInfo.has(roomName)) {
-      const newUserHistory = createNewUserHistory(userId, question);
-      roomInfo.set(roomName, {
-        uuid: newUserHistory._id,
-        userIds: new Set(),
-        question,
-      });
+    let userHistory = await getUserHistoryByRoomname(roomName);
+    if (!userHistory) {
+      userHistory = await createNewUserHistory(roomName, userId, question);
     }
-
-    if (!roomInfo.get(roomName).userIds.has(userId)) {
-      roomInfo.get(roomName).userIds.add(userId);
-      addUserToUserHistory(roomInfo.get(roomName).uuid, userId);
+    if (userHistory.firstUserId != userId && !userHistory.secondUserId) {
+      await addUserToUserHistory(roomName, userId);
     }
   } catch (e) {
     console.error('Error setting up Y-WebSocket connection:', e);
     conn.close();
   }
 
-  conn.on('save', async (document) => {
-    console.log('Save requested');
-    const _id = roomInfo.get(roomName).uuid;
-    const result = await saveUserHistory(_id, document);
-    console.log('saved');
-    console.log(result);
+  conn.on('message', async (arrayBuffer) => {
+    const enc = new TextDecoder('utf-8');
+    try {
+      const message = JSON.parse(enc.decode(arrayBuffer));
+      console.log('Received message:', message);
+      if (message.event === 'save') {
+        const { roomName, document } = message;
+        const savedHistory = await saveUserHistory(roomName, document);
+        console.log(savedHistory);
+      }
+    } catch {
+      // Message is not an custom event
+    }
   });
 
+  conn.on('save', (content) => {
+    console.log(content);
+  });
   // Handle disconnection
   conn.on('close', async () => {
     console.log(`Client left room: ${roomName}`);
