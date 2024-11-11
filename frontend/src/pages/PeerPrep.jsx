@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import { ToastContainer } from "react-toastify";
 import Sidebar from "../components/Sidebar";
@@ -6,6 +7,8 @@ import { fetchCurrentUser } from "../services/UserService";
 
 const PeerPrep = ({ children }) => {
   const [user, setUser] = useState(null);
+  const location = useLocation();
+  const isInRoom = location.pathname.includes("/room");
 
 
   useEffect(() => {
@@ -31,10 +34,12 @@ const PeerPrep = ({ children }) => {
             <Header name={fullname} username={user?.username} />
           </header>
           <div className="flex flex-1 overflow-hidden">
-            <aside className="sticky top-0 z-50 h-full">
-              <Sidebar />
-            </aside>
-
+            {/* Do not display Sidebar during collaboration */}
+            {!isInRoom && (
+              <aside className="sticky top-0 z-50 h-full">
+                <Sidebar />
+              </aside>
+            )}
             <main className="flex-1 overflow-auto rounded-3xl px-6 py-4">
               {children}
             </main>
