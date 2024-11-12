@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 
 const ProtectedRoute = () => {
-  const token = sessionStorage.getItem("jwtToken");
+  const token = localStorage.getItem("jwtToken");
 
   // If no token, redirect to the login page
   if (!token) {

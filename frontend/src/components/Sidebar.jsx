@@ -26,7 +26,7 @@ export default function Sidebar() {
   };
 
   const handleLogoutConfirm = () => {
-    sessionStorage.removeItem("jwtToken");
+    localStorage.removeItem("jwtToken");
     setIsModalOpen(false);
     navigate("/login");
   };

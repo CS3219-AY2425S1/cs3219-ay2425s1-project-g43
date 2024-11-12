@@ -53,7 +53,7 @@ const FindingPeer = () => {
   };
 
   useEffect(() => {
-    const token = sessionStorage.getItem("jwtToken");
+    const token = localStorage.getItem("jwtToken");
     const complexity = selectedLevel;
     const waitTime = time;
 
