@@ -23,6 +23,7 @@ export const useCollaborativeEditor = ({
   defaultLanguage = "python",
   theme = "vs-dark",
   user,
+  question,
 }) => {
   if (!user) {
     const randomName = `Anonymous-${Math.random().toString(36).substring(2, 5)}`;
@@ -46,8 +47,14 @@ export const useCollaborativeEditor = ({
   };
 
   useEffect(() => {
+    const questionString = JSON.stringify(question);
     let yDoc = new Y.Doc();
-    let wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc);
+    const token = localStorage.getItem("jwtToken");
+    // Create WebSocket connection
+    const wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc, {
+      params: { token, roomName, questionString },
+    });
+
     let yText = yDoc.getText("content");
     let yLanguage = yDoc.getMap("language");
 
@@ -182,6 +189,7 @@ export const useCollaborativeEditor = ({
       }
       if (wsProvider) {
         wsProvider.awareness.setLocalState(null);
+        wsProvider.emit("leave", yDoc.getText("content").toString());
         wsProvider.destroy();
       }
       if (yDoc) {
@@ -217,6 +225,18 @@ export const useCollaborativeEditor = ({
     monaco.editor.setTheme(newTheme);
   };
 
+  const emitSave = () => {
+    console.log("Emitting save");
+    if (provider) {
+      // provider.emit("save", { content: getContent() });
+      const event = "save";
+      const document = getContent();
+      provider.ws.send(
+        JSON.stringify({ event, roomName, document, currentLanguage }),
+      );
+    }
+  };
+
   return {
     status,
     editor,
@@ -227,5 +247,6 @@ export const useCollaborativeEditor = ({
     updateLanguage,
     currentLanguage,
     changeTheme,
+    emitSave,
   };
 };

@@ -1,150 +1,148 @@
 import { WebSocketServer as WSServer } from 'ws';
 import { setupWSConnection } from 'y-websocket/bin/utils';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId, UUID } from 'mongodb';
 import http from 'http';
 import express from 'express';
 import * as Y from 'yjs';
 import 'dotenv/config';
-
-// Track active rooms and their clients
-const rooms = new Map(); // roomName -> Set<connection>
-const docs = new Map(); // roomName -> Y.Doc
-
-// MongoDB setup
-const MONGO_URI = process.env.MONGO_URI;
-const DB_NAME = 'yjs-docs';
-let mongoClient;
-
-async function initMongo() {
-  mongoClient = new MongoClient(MONGO_URI);
-  await mongoClient.connect();
-  console.log('Connected to MongoDB');
-  return mongoClient.db(DB_NAME);
-}
-
-// Save document to MongoDB
-async function saveDocument(roomName, doc) {
-  try {
-    const db = mongoClient.db(DB_NAME);
-    const collection = db.collection('documents');
-
-    // Convert Yjs document to binary data
-    const docData = Buffer.from(Y.encodeStateAsUpdate(doc));
-
-    await collection.updateOne(
-      { roomName },
-      {
-        $set: {
-          content: docData,
-          lastUpdated: new Date(),
-        },
-      },
-      { upsert: true }
-    );
-
-    console.log(`Saved document for room: ${roomName}`);
-  } catch (err) {
-    console.error('Error saving document:', err);
-  }
-}
-
-// Load document from MongoDB
-async function loadDocument(roomName) {
-  try {
-    const db = mongoClient.db(DB_NAME);
-    const collection = db.collection('documents');
-
-    const docRecord = await collection.findOne({ roomName });
-    if (docRecord) {
-      const doc = new Y.Doc();
-      Y.applyUpdate(doc, docRecord.content.buffer);
-      return doc;
-    }
-    return new Y.Doc();
-  } catch (err) {
-    console.error('Error loading document:', err);
-    return new Y.Doc();
-  }
-}
+import {
+  saveUserHistory,
+  getUserHistoryByRoomname,
+  createNewUserHistory,
+  addUserToUserHistory,
+} from './model/repository.js';
+import { connectToDB } from './model/repository.js';
+import jwt from 'jsonwebtoken';
+import userHistoryRouter from './routes/user-history-route.js';
+import cors from 'cors';
 
 // Set up Express and WebSocket server
 const app = express();
 const server = http.createServer(app);
 
+app.use(
+  cors({
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'http://localhost:3003',
+      'http://localhost:3004',
+      'http://localhost:3005',
+      'http://localhost:6000',
+      'http://localhost:6001',
+      'http://localhost:6002',
+      'http://localhost:6003',
+      'http://47.129.236.67:3000',
+      'http://47.129.236.67:3001',
+      'http://47.129.236.67:3002',
+      'http://47.129.236.67:3003',
+      'http://47.129.236.67:3004',
+      'http://47.129.236.67:3005',
+      'http://47.129.236.67:6000',
+      'http://47.129.236.67:6001',
+      'http://47.129.236.67:6002',
+      'http://47.129.236.67:6003',
+    ], // Allow requests from this origin
+    methods: ['GET', 'POST'], // Allowed methods
+    allowedHeaders: ['Authorization'], // Allowed headers if needed
+    credentials: true, // Allow credentials
+  })
+);
+
 // Create WebSocket server
 const wss = new WSServer({ noServer: true });
+app.use('/userHistory', userHistoryRouter);
 
 // Handle upgrade of the HTTP connection to WebSocket
 server.on('upgrade', (request, socket, head) => {
-  const url = new URL(request.url, 'http://dummy.com');
-  const roomName = url.searchParams.get('room') || 'default';
+  try {
+    const url = new URL(request.url, 'http://dummy.com');
+    const roomName = url.searchParams.get('roomName') || 'default';
+    const token = url.searchParams.get('token');
+    const questionString = url.searchParams.get('questionString');
+    const question = JSON.parse(questionString);
+    const userId = jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        console.log(err);
+        console.log('Authentication failed');
+        return;
+      }
 
-  // Initialize room if it doesn't exist
-  if (!rooms.has(roomName)) {
-    rooms.set(roomName, new Set());
-    loadDocument(roomName).then((doc) => {
-      docs.set(roomName, doc);
+      return user.id;
     });
-  }
 
-  wss.handleUpgrade(request, socket, head, (ws) => {
-    wss.emit('connection', ws, request, roomName);
-  });
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request, roomName, userId, question);
+    });
+  } catch (e) {
+    console.error('Error handling upgrade:', e);
+    socket.destroy();
+  }
 });
 
 // Handle WebSocket connections
-wss.on('connection', (conn, req, roomName) => {
-  // Add connection to room
-  rooms.get(roomName).add(conn);
-  console.log(`Client joined room: ${roomName}`);
-
+wss.on('connection', async (conn, req, roomName, userId, question) => {
   // Set up Y-WebSocket connection
   try {
     setupWSConnection(conn, req);
-  } catch (err) {
-    console.error('Error setting up WebSocket connection:', err);
+    console.log(`Client ${userId} joined room: ${roomName}`);
+
+    let userHistory = await getUserHistoryByRoomname(roomName);
+    if (!userHistory) {
+      userHistory = await createNewUserHistory(roomName, userId, question);
+    }
+    if (userHistory.firstUserId != userId && !userHistory.secondUserId) {
+      await addUserToUserHistory(roomName, userId);
+    }
+  } catch (e) {
+    console.error('Error setting up Y-WebSocket connection:', e);
     conn.close();
   }
 
+  conn.on('message', async (arrayBuffer) => {
+    const enc = new TextDecoder('utf-8');
+    try {
+      const message = JSON.parse(enc.decode(arrayBuffer));
+      console.log('Received message:', message);
+      if (message.event === 'save') {
+        const { roomName, document, currentLanguage } = message;
+        const savedHistory = await saveUserHistory(
+          roomName,
+          document,
+          currentLanguage
+        );
+        console.log(savedHistory);
+      }
+    } catch {
+      // Message is not an custom event
+    }
+  });
+
   // Handle disconnection
   conn.on('close', async () => {
-    const roomClients = rooms.get(roomName);
-    if (roomClients) {
-      roomClients.delete(conn);
-      console.log(`Client left room: ${roomName}`);
-
-      // If room is empty, save document and clean up
-      if (roomClients.size === 0) {
-        const doc = docs.get(roomName);
-        await saveDocument(roomName, doc);
-        rooms.delete(roomName);
-        docs.delete(roomName);
-        console.log(`Room ${roomName} is empty, saved and cleaned up`);
-      }
-    } else {
-      console.warn(
-        `Room ${roomName} not found when trying to remove connection.`
-      );
-    }
+    console.log(`Client left room: ${roomName}`);
   });
 });
 
-// Start the server
-async function startServer() {
-  try {
-    await initMongo();
+await connectToDB()
+  .then(() => {
+    try {
+      const PORT = process.env.PORT || 3006;
+      const HOST = process.env.HOST || 'localhost';
 
-    const PORT = process.env.PORT || 3006;
-    const HOST = process.env.HOST || 'localhost';
-
-    server.listen(PORT, HOST, () => {
-      console.log(`WebSocket server running at ${HOST}:${PORT}`);
-    });
-  } catch (err) {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  }
-}
+      server.listen(PORT, HOST, () => {
+        console.log(`WebSocket server running at ${HOST}:${PORT}`);
+      });
+    } catch (err) {
+      console.error('Failed to start server:', err);
+      process.exit(1);
+    }
+  })
+  .catch((err) => {
+    console.error('Failed to connect to DB');
+    console.error(err);
+  });
 
 // Graceful shutdown
 async function shutdown() {
@@ -169,6 +167,3 @@ async function shutdown() {
 
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
-
-// Start the server
-startServer();
