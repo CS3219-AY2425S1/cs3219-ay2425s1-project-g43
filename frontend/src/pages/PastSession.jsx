@@ -37,7 +37,11 @@ const PastSession = () => {
           </div>
           <div className="flex-[1.5]">
             {session && (
-              <CodeViewer code={session.document} language={session.language} />
+              <CodeViewer
+                code={session.document}
+                language={session.language}
+                date={session.date}
+              />
             )}
           </div>
         </div>

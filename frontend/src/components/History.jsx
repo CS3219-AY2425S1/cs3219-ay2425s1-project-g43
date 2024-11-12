@@ -15,7 +15,7 @@ const History = ({ sessions }) => {
             return (
               <div
                 key={session._id}
-                className="flex items-start justify-between rounded-xl bg-black p-4"
+                className="flex cursor-pointer items-start justify-between rounded-xl bg-black p-4 transition-colors hover:bg-white hover:text-black"
                 onClick={() => {
                   navigate("/history/" + session._id);
                 }}

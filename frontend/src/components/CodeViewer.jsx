@@ -12,7 +12,7 @@ import { Modal } from "./LanguageModal";
 import { useViewAttempt } from "../hooks/useViewAttempt";
 
 export default function CodeEditor(props) {
-  const { code, language } = props;
+  const { code, language, date } = props;
   const [theme, setTheme] = useState("vs-dark");
   const [output, setOutput] = useState({
     type: "initial",
@@ -20,14 +20,7 @@ export default function CodeEditor(props) {
   });
   const [isExecuting, setIsExecuting] = useState(false);
 
-  const {
-    editor,
-    getContent,
-    setContent,
-    updateLanguage,
-    currentLanguage,
-    changeTheme,
-  } = useViewAttempt({
+  const { getContent, changeTheme } = useViewAttempt({
     containerId: "editor-container",
     defaultLanguage: language,
     theme,
@@ -83,7 +76,7 @@ export default function CodeEditor(props) {
 
   return (
     <div className="flex w-full flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
-      <Header />
+      <Header date={date} />
 
       <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -119,11 +112,13 @@ export default function CodeEditor(props) {
   );
 }
 
-function Header() {
+function Header({ date }) {
   return (
     <div className="mb-4 flex items-center justify-between">
       <div className="text-md mb-2 font-bold text-[#bcfe4d]">CODE EDITOR</div>
-      <div className="flex items-center gap-2" />
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-gray-400">{`Question attempted on ${new Date(date).toLocaleDateString()}`}</span>
+      </div>
     </div>
   );
 }
