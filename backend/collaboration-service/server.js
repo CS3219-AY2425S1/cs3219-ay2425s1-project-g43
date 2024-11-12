@@ -106,8 +106,12 @@ wss.on('connection', async (conn, req, roomName, userId, question) => {
       const message = JSON.parse(enc.decode(arrayBuffer));
       console.log('Received message:', message);
       if (message.event === 'save') {
-        const { roomName, document } = message;
-        const savedHistory = await saveUserHistory(roomName, document);
+        const { roomName, document, currentLanguage } = message;
+        const savedHistory = await saveUserHistory(
+          roomName,
+          document,
+          currentLanguage
+        );
         console.log(savedHistory);
       }
     } catch {

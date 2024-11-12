@@ -231,7 +231,9 @@ export const useCollaborativeEditor = ({
       // provider.emit("save", { content: getContent() });
       const event = "save";
       const document = getContent();
-      provider.ws.send(JSON.stringify({ event, roomName, document }));
+      provider.ws.send(
+        JSON.stringify({ event, roomName, document, currentLanguage }),
+      );
     }
   };
 

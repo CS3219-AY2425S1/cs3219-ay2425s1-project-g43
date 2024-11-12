@@ -25,7 +25,7 @@ export async function createNewUserHistory(roomName, firstUserId, question) {
   return newUserHistory;
 }
 
-export async function saveUserHistory(roomName, document) {
+export async function saveUserHistory(roomName, document, currentLanguage) {
   try {
     const date = new Date();
     const userHistory = await UserHistoryModel.findById(roomName);
@@ -34,6 +34,7 @@ export async function saveUserHistory(roomName, document) {
     }
     userHistory.document = document;
     userHistory.date = date;
+    userHistory.language = currentLanguage;
     userHistory.save();
     return userHistory;
   } catch (error) {

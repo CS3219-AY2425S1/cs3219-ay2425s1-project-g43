@@ -24,6 +24,10 @@ const UserHistoryModelSchema = mongoose.Schema({
   document: {
     type: String,
   },
+
+  language: {
+    type: String,
+  },
 });
 
 UserHistoryModelSchema.index({ firstUserId: 1 });

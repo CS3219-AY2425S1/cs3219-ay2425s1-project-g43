@@ -12,8 +12,7 @@ import { Modal } from "./LanguageModal";
 import { useViewAttempt } from "../hooks/useViewAttempt";
 
 export default function CodeEditor(props) {
-  const { code } = props;
-  const [localLanguage, setLocalLanguage] = useState("python");
+  const { code, language } = props;
   const [theme, setTheme] = useState("vs-dark");
   const [output, setOutput] = useState({
     type: "initial",
@@ -30,17 +29,10 @@ export default function CodeEditor(props) {
     changeTheme,
   } = useViewAttempt({
     containerId: "editor-container",
-    defaultLanguage: localLanguage,
+    defaultLanguage: language,
     theme,
     initialContent: code,
   });
-
-  // Sync local language with shared language
-  useEffect(() => {
-    if (currentLanguage !== localLanguage) {
-      setLocalLanguage(currentLanguage);
-    }
-  }, [currentLanguage]);
 
   // Handle code execution
   const handleRun = async () => {
@@ -53,7 +45,7 @@ export default function CodeEditor(props) {
         throw new Error("No code to execute");
       }
 
-      const result = await executePistonCode(localLanguage, code);
+      const result = await executePistonCode(language, code);
 
       if (result.success) {
         setOutput({
@@ -96,7 +88,7 @@ export default function CodeEditor(props) {
       <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <Select
-            value={localLanguage}
+            value={language}
             onChange={() => {
               console.log("Shouldn't be called");
             }}
