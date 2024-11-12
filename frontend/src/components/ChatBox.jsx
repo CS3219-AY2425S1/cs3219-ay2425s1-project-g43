@@ -99,7 +99,7 @@ export default function ChatBox({ roomId }) {
                   {msg.userId === userId ? "You" : msg.userId}
                 </p>
                 <p>{msg.message}</p>
-                <p className="text-xs text-right" style={{lineHeight: '0.75'}}>
+                <p className="text-xs text-right">
                 {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>

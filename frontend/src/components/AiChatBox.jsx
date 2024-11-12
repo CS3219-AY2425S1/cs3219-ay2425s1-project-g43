@@ -83,7 +83,7 @@ export default function AiChatBox({ messages, sendMessage, problem }) {
   return (
     <div className="mb-8">
       <div className="text-L font-bold text-[#bcfe4d] mb-2">AI Assistant</div>
-      <div className="bg-[#1e1e1e] rounded p-4 flex flex-col">
+      <div className="bg-[#1e1e1e] rounded p-4 h-[300px] w-[300px] flex flex-col">
         {/* Scrollable chat history */}
         <div className="flex-1 overflow-y-auto mb-4" style={{ maxHeight: "250px" }}>
           {chatHistory.map((msg, index) => (

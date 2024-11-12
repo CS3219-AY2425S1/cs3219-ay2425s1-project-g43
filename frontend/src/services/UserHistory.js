@@ -1,7 +1,6 @@
 import { createAxiosInstance } from "./Api";
 
-const userHistoryServiceBaseURL = import.meta.env
-  .VITE_COLLABORATION_SERVICE_BASEURL_HTTP;
+const userHistoryServiceBaseURL = import.meta.env.VITE_COLLABORATION_SERVICE_BASEURL_HTTP;
 
 const userHistoryApi = createAxiosInstance(userHistoryServiceBaseURL);
 

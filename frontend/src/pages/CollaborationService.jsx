@@ -38,7 +38,7 @@ export default function CollaborationService() {
           <div className="flex-[1.5]">
             <CodeEditor />
           </div>
-          <div className="flex h-[750px] flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
+          <div className="flex h-[800px] flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
           <button
             onClick={openModal}
             className="rounded-full bg-red-500 px-6 py-2 text-white hover:bg-red-600">
