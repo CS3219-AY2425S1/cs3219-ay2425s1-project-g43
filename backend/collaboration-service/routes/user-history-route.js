@@ -22,4 +22,14 @@ router.get('/:roomName', async (req, res) => {
   return res.json(userHistory).status(200);
 });
 
+router.delete('/clearAll', async (req, res) => {
+  try {
+    await UserHistoryModel.deleteMany({});
+    return res.status(200).json({ message: 'User history cleared' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error clearing user history' });
+  }
+});
+
 export default router;
