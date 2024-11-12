@@ -9,15 +9,10 @@ import { useLocation } from "react-router-dom";
 import { Play, Loader } from "lucide-react";
 import ThemeSelector from "./ThemeSelector";
 import { Modal } from "./LanguageModal";
+import { useViewAttempt } from "../hooks/useViewAttempt";
 
-const collaborationServiceBaseUrl = import.meta.env
-  .VITE_COLLABORATION_SERVICE_BASEURL;
-
-const getTemplateForLanguage = (language) => {
-  return languages.find((lang) => lang.value === language)?.template || "";
-};
-
-export default function CodeEditor() {
+export default function CodeEditor(props) {
+  const { code } = props;
   const [localLanguage, setLocalLanguage] = useState("python");
   const [theme, setTheme] = useState("vs-dark");
   const [output, setOutput] = useState({
@@ -25,39 +20,19 @@ export default function CodeEditor() {
     content: "No output yet",
   });
   const [isExecuting, setIsExecuting] = useState(false);
-  const location = useLocation();
-  const [modalState, setModalState] = useState({
-    isOpen: false,
-    pendingLanguage: null,
-  });
-  const question = location.state?.question;
-
-  const user = React.useMemo(
-    () => ({
-      name: `Anonymous-${Math.random().toString(36).substr(2, 9)}`,
-      color: `hsl(${Math.random() * 360}, 70%, 50%)`,
-    }),
-    [],
-  );
 
   const {
-    status,
     editor,
-    connectedUsers,
-    currentLanguage,
     getContent,
     setContent,
     updateLanguage,
+    currentLanguage,
     changeTheme,
-    emitSave,
-  } = useCollaborativeEditor({
-    roomName: location.pathname.split("/").pop(),
-    wsUrl: collaborationServiceBaseUrl || "ws://localhost:3006",
+  } = useViewAttempt({
     containerId: "editor-container",
     defaultLanguage: localLanguage,
     theme,
-    user,
-    question,
+    initialContent: code,
   });
 
   // Sync local language with shared language
@@ -108,42 +83,10 @@ export default function CodeEditor() {
     }
   };
 
-  // Handle language changes with confirmation if needed
-  const handleLanguageChange = (newLanguage) => {
-    const currentCode = getContent();
-    const oldLanguage = currentLanguage;
-    const oldTemplate = getTemplateForLanguage(oldLanguage)?.trim();
-
-    // Check if content matches template or is empty
-    if (!currentCode.trim() || currentCode.trim() === oldTemplate) {
-      updateLanguage(newLanguage);
-      const newTemplate = getTemplateForLanguage(newLanguage);
-      setContent(newTemplate);
-    } else {
-      setModalState({
-        isOpen: true,
-        pendingLanguage: newLanguage,
-      });
-    }
-  };
-
-  const handleModalConfirm = () => {
-    if (modalState.pendingLanguage) {
-      updateLanguage(modalState.pendingLanguage);
-      const newTemplate = getTemplateForLanguage(modalState.pendingLanguage);
-      setContent(newTemplate);
-    }
-    setModalState({ isOpen: false, pendingLanguage: null });
-  };
-
   // Handle theme changes
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
     changeTheme(newTheme);
-  };
-
-  const handleModalClose = () => {
-    setModalState({ isOpen: false, pendingLanguage: null });
   };
 
   return (
@@ -154,7 +97,9 @@ export default function CodeEditor() {
         <div className="flex flex-wrap items-center gap-2">
           <Select
             value={localLanguage}
-            onChange={handleLanguageChange}
+            onChange={() => {
+              console.log("Shouldn't be called");
+            }}
             options={languages}
             className="min-w-[150px]"
             disabled={true}
@@ -178,13 +123,6 @@ export default function CodeEditor() {
       />
 
       <Output output={output} className="max-h-[200px] overflow-auto" />
-
-      <Modal
-        isOpen={modalState.isOpen}
-        onClose={handleModalClose}
-        onConfirm={handleModalConfirm}
-        newLanguage={modalState.pendingLanguage}
-      />
     </div>
   );
 }

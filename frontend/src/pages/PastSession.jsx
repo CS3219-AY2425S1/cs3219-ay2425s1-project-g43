@@ -36,7 +36,7 @@ const PastSession = () => {
             {session && <Problems problem={session.question} />}
           </div>
           <div className="flex-[1.5]">
-            <CodeViewer />
+            {session && <CodeViewer code={session.document} />}
           </div>
         </div>
       </main>
