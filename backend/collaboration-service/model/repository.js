@@ -61,6 +61,7 @@ export async function findUserHistoryByUserId(userId) {
   // sorted by latest first
   const userHistoryList = await UserHistoryModel.find({
     $or: [{ firstUserId: userId }, { secondUserId: userId }],
+    $expr: { $gt: [{ $size: '$saves' }, 0] },
   }).sort({ date: -1 });
   return userHistoryList;
 }
