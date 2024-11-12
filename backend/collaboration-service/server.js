@@ -119,9 +119,6 @@ wss.on('connection', async (conn, req, roomName, userId, question) => {
     }
   });
 
-  conn.on('save', (content) => {
-    console.log(content);
-  });
   // Handle disconnection
   conn.on('close', async () => {
     console.log(`Client left room: ${roomName}`);

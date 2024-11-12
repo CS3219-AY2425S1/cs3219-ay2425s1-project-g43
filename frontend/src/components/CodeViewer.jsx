@@ -10,21 +10,25 @@ import { Play, Loader } from "lucide-react";
 import ThemeSelector from "./ThemeSelector";
 import { Modal } from "./LanguageModal";
 import { useViewAttempt } from "../hooks/useViewAttempt";
+import SaveNavigator from "./SaveNavigator";
 
-export default function CodeEditor(props) {
-  const { code, language, date } = props;
+export default function CodeViewer(props) {
+  const { saves, language, date } = props;
   const [theme, setTheme] = useState("vs-dark");
   const [output, setOutput] = useState({
     type: "initial",
     content: "No output yet",
   });
   const [isExecuting, setIsExecuting] = useState(false);
+  const [currentSave, setCurrentSave] = useState(saves.length);
+
+  console.log(saves);
 
   const { getContent, changeTheme } = useViewAttempt({
     containerId: "editor-container",
     defaultLanguage: language,
     theme,
-    initialContent: code,
+    initialContent: saves[currentSave - 1],
   });
 
   // Handle code execution
@@ -76,7 +80,12 @@ export default function CodeEditor(props) {
 
   return (
     <div className="flex w-full flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
-      <Header date={date} />
+      <Header
+        date={date}
+        saves={saves}
+        setCurrentSave={setCurrentSave}
+        currentSave={currentSave}
+      />
 
       <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -112,10 +121,15 @@ export default function CodeEditor(props) {
   );
 }
 
-function Header({ date }) {
+function Header({ date, saves, setCurrentSave, currentSave }) {
   return (
     <div className="mb-4 flex items-center justify-between">
-      <div className="text-md mb-2 font-bold text-[#bcfe4d]">CODE EDITOR</div>
+      <div className="text-md mb-2 font-bold text-[#bcfe4d]">CODE VIEWER</div>
+      <SaveNavigator
+        maxSave={saves.length}
+        setCurrentSave={setCurrentSave}
+        currentSave={currentSave}
+      />
       <div className="flex items-center gap-2">
         <span className="text-sm text-gray-400">{`Question attempted on ${new Date(date).toLocaleDateString()}`}</span>
       </div>

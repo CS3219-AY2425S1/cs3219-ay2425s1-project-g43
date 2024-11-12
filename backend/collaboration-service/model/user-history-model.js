@@ -21,8 +21,8 @@ const UserHistoryModelSchema = mongoose.Schema({
     required: true,
   },
 
-  document: {
-    type: String,
+  saves: {
+    type: [String],
   },
 
   language: {

@@ -13,13 +13,13 @@ export async function connectToDB() {
 
 export async function createNewUserHistory(roomName, firstUserId, question) {
   const date = new Date();
-  const document = 'No code attempt was saved';
+  const saves = [];
   const newUserHistory = new UserHistoryModel({
     _id: roomName,
     firstUserId,
     question,
     date,
-    document,
+    saves,
   });
   newUserHistory.save();
   return newUserHistory;
@@ -32,7 +32,7 @@ export async function saveUserHistory(roomName, document, currentLanguage) {
     if (!userHistory) {
       return null;
     }
-    userHistory.document = document;
+    userHistory.saves = [...userHistory.saves, document];
     userHistory.date = date;
     userHistory.language = currentLanguage;
     userHistory.save();
