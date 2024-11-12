@@ -3,27 +3,28 @@ import Navbar from "../components/Navbar";
 
 const developers = [
   {
-    imgSrc: "https://avatar.iran.liara.run/public/boy?username=Adhitya",
+    imgSrc:
+      "https://avatar.iran.liara.run/public/boy?username=Adhitya+Gopalakrishnan",
     name: "Adhitya Gopalakrishnan",
     title: "Backend Developer",
   },
   {
-    imgSrc: "https://avatar.iran.liara.run/public/boy?username=Darren",
+    imgSrc: "https://avatar.iran.liara.run/public/boy?username=Darren+Sim",
     name: "Darren Sim",
     title: "Backend Developer",
   },
   {
-    imgSrc: "https://avatar.iran.liara.run/public/boy?username=Jay",
+    imgSrc: "https://avatar.iran.liara.run/public/boy?username=Junhu+Song",
     name: "Junhu Song",
     title: "Frontend Developer",
   },
   {
-    imgSrc: "https://avatar.iran.liara.run/public/boy?username=Ravi",
+    imgSrc: "https://avatar.iran.liara.run/public/boy?username=Ravi+Kishore",
     name: "Ravi Kishore",
     title: "Backend Developer",
   },
   {
-    imgSrc: "https://avatar.iran.liara.run/public/boy?username=Ujjwal",
+    imgSrc: "https://avatar.iran.liara.run/public/boy?username=Ujjwal+Gaurav",
     name: "Ujjwal Gaurav",
     title: "Product Designer, Frontend Developer",
   },
