@@ -13,10 +13,6 @@ import { Modal } from "./LanguageModal";
 const collaborationServiceBaseUrl = import.meta.env
   .VITE_COLLABORATION_SERVICE_BASEURL;
 
-const getTemplateForLanguage = (language) => {
-  return languages.find((lang) => lang.value === language)?.template || "";
-};
-
 export default function CodeEditor() {
   const [localLanguage, setLocalLanguage] = useState("python");
   const [theme, setTheme] = useState("vs-dark");
@@ -112,14 +108,11 @@ export default function CodeEditor() {
   // Handle language changes with confirmation if needed
   const handleLanguageChange = (newLanguage) => {
     const currentCode = getContent();
-    const oldLanguage = currentLanguage;
-    const oldTemplate = getTemplateForLanguage(oldLanguage)?.trim();
 
-    // Check if content matches template or is empty
-    if (!currentCode.trim() || currentCode.trim() === oldTemplate) {
+    // Check if content is empty before changing language
+    if (!currentCode.trim()) {
       updateLanguage(newLanguage);
-      const newTemplate = getTemplateForLanguage(newLanguage);
-      setContent(newTemplate);
+      setContent(""); 
     } else {
       setModalState({
         isOpen: true,
@@ -131,8 +124,7 @@ export default function CodeEditor() {
   const handleModalConfirm = () => {
     if (modalState.pendingLanguage) {
       updateLanguage(modalState.pendingLanguage);
-      const newTemplate = getTemplateForLanguage(modalState.pendingLanguage);
-      setContent(newTemplate);
+      setContent(""); 
     }
     setModalState({ isOpen: false, pendingLanguage: null });
   };

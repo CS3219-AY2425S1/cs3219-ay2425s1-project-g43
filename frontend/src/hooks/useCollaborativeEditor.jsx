@@ -42,15 +42,11 @@ export const useCollaborativeEditor = ({
   const decorationCollection = useRef(null);
   const awarenessRef = useRef(null);
 
-  const getTemplateForLanguage = (language) => {
-    return languages.find((lang) => lang.value === language)?.template || "";
-  };
-
   useEffect(() => {
     const questionString = JSON.stringify(question);
     let yDoc = new Y.Doc();
     const token = localStorage.getItem("jwtToken");
-    // Create WebSocket connection
+
     const wsProvider = new WebsocketProvider(wsUrl, roomName, yDoc, {
       params: { token, roomName, questionString },
     });
@@ -60,7 +56,6 @@ export const useCollaborativeEditor = ({
 
     setProvider(wsProvider);
 
-    // Initialize yLanguage
     if (!yLanguage.get("selectedLanguage")) {
       yLanguage.set("selectedLanguage", defaultLanguage);
     }
@@ -71,7 +66,6 @@ export const useCollaborativeEditor = ({
       return;
     }
 
-    // Create editor with default options
     const monacoEditor = monaco.editor.create(container, {
       ...editorDefaultOptions,
       theme,
@@ -79,22 +73,15 @@ export const useCollaborativeEditor = ({
       automaticLayout: true,
     });
 
-    // Initialize decoration collection after editor is created
     decorationCollection.current = monacoEditor.createDecorationsCollection();
-
     setEditor(monacoEditor);
 
-    // Add template handling
     wsProvider.on("synced", (isSynced) => {
       if (isSynced && !yText.toString()) {
-        const template = getTemplateForLanguage(
-          yLanguage.get("selectedLanguage") || defaultLanguage,
-        );
-        yText.insert(0, template);
+        yText.insert(0, ""); 
       }
     });
 
-    // Set up Monaco binding
     new MonacoBinding(
       yText,
       monacoEditor.getModel(),
@@ -102,17 +89,14 @@ export const useCollaborativeEditor = ({
       wsProvider.awareness,
     );
 
-    // Set up awareness
     const awareness = wsProvider.awareness;
     awarenessRef.current = awareness;
 
-    // Update awareness state with user info and cursor
     awareness.setLocalState({
       user,
       cursor: monacoEditor.getPosition(),
     });
 
-    // Handle cursor position changes
     monacoEditor.onDidChangeCursorPosition((e) => {
       const state = awareness.getLocalState();
       if (state) {
@@ -123,7 +107,6 @@ export const useCollaborativeEditor = ({
       }
     });
 
-    // Handle remote cursors
     awareness.on("change", () => {
       const states = Array.from(awareness.getStates().values());
       setConnectedUsers(states.length);
@@ -164,13 +147,11 @@ export const useCollaborativeEditor = ({
       decorationCollection.current.set(decorations);
     });
 
-    // Handle connection status
     wsProvider.on("status", ({ status }) => {
       console.log("WebSocket status:", status);
       setStatus(status);
     });
 
-    // Handle language changes
     yLanguage.observe(() => {
       const newLanguage = yLanguage.get("selectedLanguage");
       if (newLanguage && newLanguage !== currentLanguage) {
@@ -179,7 +160,6 @@ export const useCollaborativeEditor = ({
       }
     });
 
-    // Cleanup
     return () => {
       if (decorationCollection.current) {
         decorationCollection.current.clear();
@@ -211,13 +191,9 @@ export const useCollaborativeEditor = ({
       const yLanguage = provider.doc.getMap("language");
       const yText = provider.doc.getText("content");
 
-      // Update the language
       yLanguage.set("selectedLanguage", newLanguage);
-
-      // Update the content with new template
-      const template = getTemplateForLanguage(newLanguage);
       yText.delete(0, yText.length);
-      yText.insert(0, template);
+      yText.insert(0, ""); 
     }
   };
 
@@ -228,7 +204,6 @@ export const useCollaborativeEditor = ({
   const emitSave = () => {
     console.log("Emitting save");
     if (provider) {
-      // provider.emit("save", { content: getContent() });
       const event = "save";
       const document = getContent();
       provider.ws.send(
