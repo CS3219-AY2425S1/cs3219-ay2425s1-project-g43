@@ -10,7 +10,6 @@ export const useViewAttempt = ({
   initialContent = "",
 }) => {
   const [editor, setEditor] = useState(null);
-  const [currentLanguage, setCurrentLanguage] = useState(defaultLanguage);
 
   const getTemplateForLanguage = (language) => {
     return languages.find((lang) => lang.value === language)?.template || "";
@@ -45,21 +44,6 @@ export const useViewAttempt = ({
 
   const getContent = () => editor?.getModel()?.getValue() || "";
 
-  const setContent = (content) => {
-    if (editor) {
-      editor.getModel()?.setValue(content);
-    }
-  };
-
-  const updateLanguage = (newLanguage) => {
-    setCurrentLanguage(newLanguage);
-    if (editor) {
-      monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
-      const template = getTemplateForLanguage(newLanguage);
-      setContent(template);
-    }
-  };
-
   const changeTheme = (newTheme) => {
     if (editor) {
       monaco.editor.setTheme(newTheme);
@@ -67,11 +51,7 @@ export const useViewAttempt = ({
   };
 
   return {
-    editor,
     getContent,
-    setContent,
-    updateLanguage,
-    currentLanguage,
     changeTheme,
   };
 };
