@@ -13,7 +13,7 @@ import { useViewAttempt } from "../hooks/useViewAttempt";
 import SaveNavigator from "./SaveNavigator";
 
 export default function CodeViewer(props) {
-  const { saves, language, date } = props;
+  const { saves, languagesUsed, date } = props;
   const [theme, setTheme] = useState("vs-dark");
   const [output, setOutput] = useState({
     type: "initial",
@@ -26,7 +26,7 @@ export default function CodeViewer(props) {
 
   const { getContent, changeTheme } = useViewAttempt({
     containerId: "editor-container",
-    defaultLanguage: language,
+    defaultLanguage: languagesUsed[currentSave - 1],
     theme,
     initialContent: saves[currentSave - 1],
   });
@@ -42,7 +42,10 @@ export default function CodeViewer(props) {
         throw new Error("No code to execute");
       }
 
-      const result = await executePistonCode(language, code);
+      const result = await executePistonCode(
+        languagesUsed[currentSave - 1],
+        code,
+      );
 
       if (result.success) {
         setOutput({
@@ -90,11 +93,11 @@ export default function CodeViewer(props) {
       <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <Select
-            value={language}
+            value={languagesUsed[currentSave - 1]}
             onChange={() => {
               console.log("Shouldn't be called");
             }}
-            options={languages}
+            options={languagesUsed}
             className="min-w-[150px]"
             disabled={true}
           />

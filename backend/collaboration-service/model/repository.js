@@ -14,12 +14,14 @@ export async function connectToDB() {
 export async function createNewUserHistory(roomName, firstUserId, question) {
   const date = new Date();
   const saves = [];
+  const languages = [];
   const newUserHistory = new UserHistoryModel({
     _id: roomName,
     firstUserId,
     question,
     date,
     saves,
+    languages,
   });
   newUserHistory.save();
   return newUserHistory;
@@ -33,8 +35,8 @@ export async function saveUserHistory(roomName, document, currentLanguage) {
       return null;
     }
     userHistory.saves = [...userHistory.saves, document];
+    userHistory.languages = [...userHistory.languages, currentLanguage];
     userHistory.date = date;
-    userHistory.language = currentLanguage;
     userHistory.save();
     return userHistory;
   } catch (error) {

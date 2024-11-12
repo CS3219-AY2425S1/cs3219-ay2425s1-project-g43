@@ -39,7 +39,7 @@ const PastSession = () => {
             {session && (
               <CodeViewer
                 saves={session.saves}
-                language={session.language}
+                languagesUsed={session.languages}
                 date={session.date}
               />
             )}

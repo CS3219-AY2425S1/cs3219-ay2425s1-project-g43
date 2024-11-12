@@ -25,8 +25,8 @@ const UserHistoryModelSchema = mongoose.Schema({
     type: [String],
   },
 
-  language: {
-    type: String,
+  languages: {
+    type: [String],
   },
 });
 
