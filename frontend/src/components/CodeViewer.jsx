@@ -97,7 +97,7 @@ export default function CodeViewer(props) {
             onChange={() => {
               console.log("Shouldn't be called");
             }}
-            options={languagesUsed}
+            options={languages}
             className="min-w-[150px]"
             disabled={true}
           />
