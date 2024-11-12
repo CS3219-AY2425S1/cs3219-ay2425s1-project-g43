@@ -30,6 +30,7 @@ export default function CodeEditor() {
     isOpen: false,
     pendingLanguage: null,
   });
+  const question = location.state?.question;
 
   const user = React.useMemo(
     () => ({
@@ -37,7 +38,7 @@ export default function CodeEditor() {
       color: `hsl(${Math.random() * 360}, 70%, 50%)`,
     }),
     [],
-  ); 
+  );
 
   const {
     status,
@@ -48,6 +49,7 @@ export default function CodeEditor() {
     setContent,
     updateLanguage,
     changeTheme,
+    emitSave,
   } = useCollaborativeEditor({
     roomName: location.pathname.split("/").pop(),
     wsUrl: collaborationServiceBaseUrl || "ws://localhost:3006",
@@ -55,6 +57,7 @@ export default function CodeEditor() {
     defaultLanguage: localLanguage,
     theme,
     user,
+    question,
   });
 
   // Sync local language with shared language
@@ -75,6 +78,7 @@ export default function CodeEditor() {
         throw new Error("No code to execute");
       }
 
+      emitSave();
       const result = await executePistonCode(localLanguage, code);
 
       if (result.success) {
