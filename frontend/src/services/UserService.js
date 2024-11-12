@@ -25,7 +25,7 @@ export const loginUser = async (user) => {
       throw new Error("Token not found in the login response.");
     }
 
-    localStorage.setItem("jwtToken", token);
+    sessionStorage.setItem("jwtToken", token);
 
     return response.data;
   } catch (error) {
@@ -36,7 +36,7 @@ export const loginUser = async (user) => {
 
 export const fetchCurrentUser = async () => {
   try {
-    const token = localStorage.getItem("jwtToken");
+    const token = sessionStorage.getItem("jwtToken");
 
     if (!token) throw new Error("No JWT token found");
 

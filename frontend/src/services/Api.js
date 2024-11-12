@@ -10,7 +10,7 @@ export const createAxiosInstance = (baseURL) => {
 
   // Add interceptor to attach token to the Authorization header
   api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("jwtToken");
+    const token = sessionStorage.getItem("jwtToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
