@@ -15,6 +15,7 @@ export default function CollaborationService() {
   const [problem, setProblem] = useState(question);
   const [messages, setMessages] = useState([]); 
   const roomId = location.pathname.split("/").pop();
+  const sessionKey = "chatMessages_${roomId}";
 
   const sendMessage = (text, sender = "me") => {
     setMessages((prevMessages) => [...prevMessages, { sender, text }]);
@@ -23,6 +24,7 @@ export default function CollaborationService() {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
   const handleEndSession = () => {
+    localStorage.removeItem(sessionKey);
     navigate("/dashboard");
   }
 

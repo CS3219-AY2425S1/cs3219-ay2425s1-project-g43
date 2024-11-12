@@ -7,8 +7,20 @@ export default function ChatBox({ roomId }) {
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState(null);
   const chatEndRef = useRef(null);
-  const [isInRoom, setIsInRoom] = useState(true);
   const sessionKey = "chatMessages_${roomId}";
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const currentUser = await fetchCurrentUser();
+        setUser(currentUser.data);
+      } catch (error) {
+        console.error(error.message);
+      }
+    };
+    getUser();
+  }, []);
+  const userId = user?.username;
 
   // Load messages from localStorage when the component mounts
   useEffect(() => {
@@ -24,21 +36,6 @@ export default function ChatBox({ roomId }) {
       console.error("Failed to parse messages from localStorage", error);
     }
   }, [sessionKey]);
-
-
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        const currentUser = await fetchCurrentUser();
-        setUser(currentUser.data);
-      } catch (error) {
-        console.error(error.message);
-      }
-    };
-    getUser();
-  }, []);
-
-  const userId = user?.username;
 
   useEffect(() => {
     // Connect to the communication service
@@ -57,7 +54,6 @@ export default function ChatBox({ roomId }) {
       // Leave the room
       console.log("Leaving room:", roomId);
       communicationService.disconnect();
-      localStorage.removeItem(sessionKey);
     };
   }, [roomId]);
 
@@ -76,8 +72,6 @@ export default function ChatBox({ roomId }) {
     }
   };
 
-  
-
   useEffect(() => {
     // Scroll to the bottom of the chat
     if (chatEndRef.current) {
@@ -85,33 +79,25 @@ export default function ChatBox({ roomId }) {
     }
   }, [messages]);
 
-  // useEffect(() => {
-  //   const handleUnload = () => {
-  //     if (!isInRoom) {
-  //       localStorage.removeItem(sessionKey);
-  //     }
-  //   };
-  
-  //   window.addEventListener("beforeunload", handleUnload);
-  //   return () => {
-  //     window.removeEventListener("beforeunload", handleUnload);
-  //   };
-  // }, [sessionKey]);
 
   return (
     <div className="mb-8">
-      <div className="text-L font-bold text-[#bcfe4d] mb-2">CHAT</div>
-      <div className="bg-[#1e1e1e] rounded p-4 h-[300px] flex flex-col">
+      <div className="text-L font-bold text-[#bcfe4d] mb-2">Chat Box</div>
+      <div className="bg-[#1e1e1e] rounded p-4 h-[300px] w-[300px] flex flex-col">
         <div ref={chatEndRef} className="flex-1 overflow-auto">
+        <p className={`font-semibold mb-2 text-center text-gray-500`}>Welcome to Chat Room</p>
           <div className="flex-1 overflow-auto mb-4">
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`mb-2 px-4 py-2 rounded-full text-sm max-w-[80%] ${
+                className={`mb-2 px-4 py-2 rounded-lg text-sm max-w-[80%] ${
                   msg.userId === userId 
                     ? "bg-[#bcfe4d] text-black ml-auto" 
                     : "bg-[#ffffff] text-black mr-auto"
-                }`}            >
+                } break-words overflow-x-auto`}>
+                <p className={`font-semibold mb-1 ${msg.userId === userId ? "text-red-500" : "text-blue-500"}`}>
+                  {msg.userId === userId ? "You" : msg.userId}
+                </p>
                 <p>{msg.message}</p>
                 <p className="text-xs text-right" style={{lineHeight: '0.75'}}>
                 {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
