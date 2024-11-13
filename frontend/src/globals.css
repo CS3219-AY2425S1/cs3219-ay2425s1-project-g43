@@ -23,6 +23,18 @@ body {
     sans-serif;
 }
 
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.remote-cursor {
+  position: relative;
+  border-left: 2px solid var(--cursor-color, #4571ff);
+  height: 18px;
+}
+
 ::-webkit-scrollbar {
   display: none;
 }

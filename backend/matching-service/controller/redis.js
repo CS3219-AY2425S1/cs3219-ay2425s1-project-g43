@@ -1,9 +1,10 @@
 import Redis from 'ioredis';
 import { io } from '../server.js';
 import 'dotenv/config';
+import ObjectId from 'bson-objectid';
 
 let socketChannel;
-const redisHost = process.env.REDIS_HOST || "localhost";
+const redisHost = process.env.REDIS_HOST || 'localhost';
 const redisPort = process.env.REDIS_PORT || 6379;
 export const startRedis = async () => {
   socketChannel = new Redis({
@@ -30,7 +31,7 @@ export const enqueueSocket = async (socketId, topic, complexity, waitTime) => {
     socketChannel.del(topicAndComplexity); //delete this socketId from the queue
 
     // TODO: Replace with collaboration service room id
-    const roomId = Math.random().toString(36).substring(7);
+    const roomId = ObjectId();
     io.to(socketId).emit('matchFound', roomId);
     io.to(socketId2).emit('matchFound', roomId);
     console.log(`Matched ${socketId} with ${socketId2}, roomId: ${roomId}`);

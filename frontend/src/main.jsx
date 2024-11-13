@@ -14,8 +14,9 @@ import Settings from "./pages/Settings.jsx";
 import Help from "./pages/Help.jsx";
 import FindingPeer from "./pages/FindingPeer.jsx";
 import MatchingService from "./pages/MatchingService.jsx";
-import Room from "./pages/Room.jsx";
 import CollaborationService from "./pages/CollaborationService.jsx";
+import PastSession from "./pages/PastSession.jsx";
+import "../src/configs/monaco.js";
 
 const router = createBrowserRouter([
   {
@@ -74,6 +75,11 @@ const router = createBrowserRouter([
       {
         path: "/room/:id",
         element: <CollaborationService />,
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: "/history/:id",
+        element: <PastSession />,
         errorElement: <ErrorPage />,
       },
     ],

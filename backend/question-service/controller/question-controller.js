@@ -135,12 +135,10 @@ export async function findRandomQuestionByCategoryAndComplexity(req, res) {
     // Select a random question from the array
     const randomIndex = Math.floor(Math.random() * questions.length);
     const randomQuestion = questions[randomIndex];
-
+    console.log(randomQuestion);
     // Return only the ID of the selected question
     return res.status(200).json(randomQuestion);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 }
-
-

@@ -7,24 +7,30 @@ export default function Problems({ problem }) {
   }
 
   return (
-    <div className="mb-8">
-      <div className="text-L font-bold text-[#bcfe4d] mb-2">PROBLEM</div>
-      <div className="bg-[#1e1e1e] rounded p-4">
-        <h2 className="text-xl font-bold mb-4 text-white">{problem.title}</h2>
-        <div className="flex gap-2 mb-4">
-          <span
-            className={`px-4 py-1 rounded-full text-sm text-black ${
-              problem.complexity === "Easy"
-                ? "bg-green-400"
-                : problem.complexity === "Medium"
+    <div className="flex h-[88vh] flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
+      <div className="text-md mb-2 font-bold text-[#bcfe4d]">PROBLEM</div>
+
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-white">{problem.title}</h2>
+        <span
+          className={`rounded-full px-4 py-1 text-sm text-black ${
+            problem.complexity === "Easy"
+              ? "bg-green-400"
+              : problem.complexity === "Medium"
                 ? "bg-yellow-400"
                 : "bg-red-400"
-            }`}
-          >
-            {problem.complexity}
-          </span>
-        </div>
-        <div className="text-white mb-6" style={{ whiteSpace: 'pre-line' }}>{problem.description}</div>
+          }`}
+        >
+          {problem.complexity}
+        </span>
+      </div>
+      <div className="h-[1px] bg-white/30"></div>
+
+      <div
+        className="flex-1 overflow-y-auto rounded-lg bg-[#1e1e1e]/40 px-3 py-2 text-sm font-light text-white"
+        style={{ whiteSpace: "pre-line" }}
+      >
+        {problem.description}
       </div>
     </div>
   );

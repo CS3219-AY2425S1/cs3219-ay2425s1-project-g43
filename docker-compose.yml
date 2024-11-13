@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8'
 services:
   redis:
     image: redis
@@ -40,5 +40,25 @@ services:
       - "3006:3006"
     env_file:
       - ./backend/collaboration-service/.env
+    environment:
+      - HOST=0.0.0.0
+
+  ai-service:
+    build: 
+      context: ./backend/ai-service
+    ports:
+      - "3007:3007"
+    env_file:
+      - ./backend/ai-service/.env
+    volumes:
+      - ./backend/ai-service:/usr/src/app
+
+  communication-service:
+    build:
+      context: ./backend/communication-service
+    ports:
+      - "3005:3005"
+    env_file:
+      - ./backend/communication-service/.env
     environment:
       - HOST=0.0.0.0

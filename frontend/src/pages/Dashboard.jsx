@@ -6,33 +6,11 @@ import History from "../components/History";
 import PeerPrep from "./PeerPrep";
 import { useEffect, useState } from "react";
 import { fetchCurrentUser } from "../services/UserService";
-
-const peerSessions = [
-  {
-    id: 1,
-    date: "2024-09-21",
-    peerName: "John Doe",
-    topics: ["Arrays", "Sorting"],
-    result: "Success",
-  },
-  {
-    id: 2,
-    date: "2024-09-21",
-    peerName: "John Doe",
-    topics: ["Arrays", "Sorting"],
-    result: "Success",
-  },
-  {
-    id: 3,
-    date: "2024-09-21",
-    peerName: "John Doe",
-    topics: ["Arrays", "Sorting"],
-    result: "Success",
-  },
-];
+import { fetchUserHistory } from "../services/UserHistory";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
+  const [sessions, setSessions] = useState([]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -43,7 +21,18 @@ export default function Dashboard() {
         console.error(error.message);
       }
     };
+
+    const getUserHistory = async () => {
+      try {
+        const sessions = await fetchUserHistory();
+        setSessions(sessions);
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+
     getUser();
+    getUserHistory();
   }, []);
 
   return (
@@ -54,8 +43,8 @@ export default function Dashboard() {
           <ProgressOverview />
         </div>
         <div className="mt-5 flex space-x-5">
-          <Questions isAdmin={true} />
-          <History sessions={peerSessions} />
+          <Questions isAdmin={user?.isAdmin} />
+          <History sessions={sessions} />
           <Calendar />
         </div>
       </main>

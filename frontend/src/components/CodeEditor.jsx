@@ -1,70 +1,201 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCollaborativeEditor } from "../hooks/useCollaborativeEditor";
+import Button from "../components/Button";
+import Select from "../components/Select";
+import Output from "../components/Output";
+import { languages } from "../configs/monaco";
+import { executePistonCode } from "../services/CollaborationService";
 import { useLocation } from "react-router-dom";
+import { Play, Loader } from "lucide-react";
+import ThemeSelector from "./ThemeSelector";
+import { Modal } from "./LanguageModal";
 
-const collaborationServiceBaseUrl = import.meta.env.VITE_COLLABORATION_SERVICE_BASEURL;
+const collaborationServiceBaseUrl = import.meta.env
+  .VITE_COLLABORATION_SERVICE_BASEURL;
 
-export default function CodeEditor({ code, setCode, language, setLanguage }) {
+export default function CodeEditor() {
+  const [localLanguage, setLocalLanguage] = useState("python");
+  const [theme, setTheme] = useState("vs-dark");
+  const [output, setOutput] = useState({
+    type: "initial",
+    content: "No output yet",
+  });
+  const [isExecuting, setIsExecuting] = useState(false);
   const location = useLocation();
-  const roomName = location.pathname.split("/").pop();
-  const { status, connectedUsers, getContent, setContent } =
-    useCollaborativeEditor({
-      roomName,
-      wsUrl: collaborationServiceBaseUrl || "ws://localhost:6006",
-      containerId: "editor-container",
-    });
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    pendingLanguage: null,
+  });
+  const question = location.state?.question;
 
-  const languages = ["Python", "JavaScript", "Java"];
+  const user = React.useMemo(
+    () => ({
+      name: `Anonymous-${Math.random().toString(36).substr(2, 9)}`,
+      color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+    }),
+    [],
+  );
 
-  const handleInputChange = (e) => {
-    setCode(e.target.value);
+  const {
+    status,
+    editor,
+    connectedUsers,
+    currentLanguage,
+    getContent,
+    setContent,
+    updateLanguage,
+    changeTheme,
+    emitSave,
+  } = useCollaborativeEditor({
+    roomName: location.pathname.split("/").pop(),
+    wsUrl: collaborationServiceBaseUrl || "ws://localhost:3006",
+    containerId: "editor-container",
+    defaultLanguage: localLanguage,
+    theme,
+    user,
+    question,
+  });
+
+  // Sync local language with shared language
+  useEffect(() => {
+    if (currentLanguage !== localLanguage) {
+      setLocalLanguage(currentLanguage);
+    }
+  }, [currentLanguage]);
+
+  // Handle code execution
+  const handleRun = async () => {
+    setIsExecuting(true);
+    setOutput({ type: "running", content: "Executing code..." });
+
+    try {
+      const code = getContent();
+      if (!code.trim()) {
+        throw new Error("No code to execute");
+      }
+
+      emitSave();
+      const result = await executePistonCode(localLanguage, code);
+
+      if (result.success) {
+        setOutput({
+          type: "success",
+          content: result.output || "Code executed successfully with no output",
+        });
+      } else {
+        const errorPrefix =
+          {
+            compilation: "⚠️ Compilation Error:\n",
+            runtime: "❌ Runtime Error:\n",
+            system: "⚠️ System Error:\n",
+          }[result.errorType] || "⚠️ Error:\n";
+
+        setOutput({
+          type: "error",
+          content: errorPrefix + (result.error || "Unknown error occurred"),
+        });
+      }
+    } catch (error) {
+      setOutput({
+        type: "error",
+        content: "⚠️ System Error:\n" + error.message,
+      });
+    } finally {
+      setIsExecuting(false);
+    }
   };
 
-  const renderLineNumbers = () => {
-    const lines = code.split("\n").length;
-    return Array.from({ length: lines }, (_, i) => i + 1).join("\n");
+  // Handle language changes with confirmation if needed
+  const handleLanguageChange = (newLanguage) => {
+    const currentCode = getContent();
+
+    // Check if content is empty before changing language
+    if (!currentCode.trim()) {
+      updateLanguage(newLanguage);
+      setContent(""); 
+    } else {
+      setModalState({
+        isOpen: true,
+        pendingLanguage: newLanguage,
+      });
+    }
+  };
+
+  const handleModalConfirm = () => {
+    if (modalState.pendingLanguage) {
+      updateLanguage(modalState.pendingLanguage);
+      setContent(""); 
+    }
+    setModalState({ isOpen: false, pendingLanguage: null });
+  };
+
+  // Handle theme changes
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    changeTheme(newTheme);
+  };
+
+  const handleModalClose = () => {
+    setModalState({ isOpen: false, pendingLanguage: null });
   };
 
   return (
-    <div className="mb-8">
-      <div className="text-L mb-2 font-bold text-[#bcfe4d]">CODE EDITOR</div>
-      <div className="rounded bg-[#1e1e1e] p-4">
-        <div className="mb-4 flex gap-2">
-          {languages.map((lang) => (
-            <button
-              key={lang}
-              className={`rounded-full px-4 py-1 text-sm text-black transition-colors ${
-                language === lang
-                  ? "bg-[#bcfe4d]"
-                  : "bg-[#DDDDDD] hover:bg-[#bcfe4d]"
-              }`}
-              onClick={() => setLanguage(lang)}
-            >
-              {lang}
-            </button>
-          ))}
-        </div>
-        <div className="relative flex bg-gray-100/10">
-          <div className="bg-gray-100/10 p-2 pt-4 text-right text-[#888]">
-            <pre>{renderLineNumbers()}</pre>
-          </div>
-          <div
-            id="editor-container"
-            onChange={handleInputChange}
-            style={{ minHeight: "400px" }}
-            className="focus:ring-none h-[500px] w-full resize-none rounded bg-gray-100/10 p-4 text-white focus:outline-none focus:ring-0"
-            spellCheck="false"
-            placeholder="Write your code here..."
+    <div className="flex w-full flex-col space-y-4 rounded-lg border border-gray-300/30 p-6">
+      <Header status={status} connectedUsers={connectedUsers} />
+
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            value={localLanguage}
+            onChange={handleLanguageChange}
+            options={languages}
+            className="min-w-[150px]"
           />
+          <Button
+            onClick={handleRun}
+            disabled={isExecuting}
+            icon={isExecuting ? Loader : Play}
+            className={isExecuting ? "animate-spin" : ""}
+          >
+            {isExecuting ? "Running..." : "Run"}
+          </Button>
         </div>
-        <div className="mt-4 flex justify-end gap-2">
-          <button className="rounded-full bg-[#DDDDDD] px-4 py-1 text-sm text-black transition-colors hover:bg-[#bcfe4d]">
-            Run
-          </button>
-          <button className="rounded-full bg-[#bcfe4d] px-4 py-1 text-sm text-black transition-colors hover:bg-[#a6e636]">
-            Submit
-          </button>
-        </div>
+
+        <ThemeSelector currentTheme={theme} onThemeChange={handleThemeChange} />
+      </div>
+
+      <div
+        id="editor-container"
+        className="h-[400px] w-full overflow-hidden rounded-lg border border-gray-700/30 bg-[#1e1e1e]"
+      />
+
+      <Output output={output} className="max-h-[200px] overflow-auto" />
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={handleModalClose}
+        onConfirm={handleModalConfirm}
+        newLanguage={modalState.pendingLanguage}
+      />
+    </div>
+  );
+}
+
+function Header({ status, connectedUsers }) {
+  return (
+    <div className="mb-4 flex items-center justify-between">
+      <div className="text-md mb-2 font-bold text-[#bcfe4d]">CODE EDITOR</div>
+      <div className="flex items-center gap-2">
+        <div
+          className={`h-2 w-2 rounded-full ${
+            status === "connected" ? "bg-green-400" : "bg-red-500"
+          }`}
+        />
+        <span className="text-sm text-gray-400">
+          {status === "connected"
+            ? `${connectedUsers} user${connectedUsers !== 1 ? "s" : ""} connected`
+            : "Disconnected"}
+        </span>
       </div>
     </div>
   );
